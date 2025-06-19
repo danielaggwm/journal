@@ -17,6 +17,14 @@
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
 
         import {
+          getFirestore, doc, setDoc, getDoc, deleteDoc
+        } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+        import {
+          getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+        } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
+
+        import {
             getAuth,
             createUserWithEmailAndPassword,
             signInWithEmailAndPassword,
@@ -41,6 +49,11 @@
         const analytics = getAnalytics(app);
         const auth = getAuth(app);
         window.firebaseApp = { auth };  
+
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        window.firebaseApp = { auth, db, storage };
+
     </script>
 
     <!-- FullCalendar JS -->
@@ -70,6 +83,41 @@
 
     <!-- CALENDAR -->
     <div id="calendar" style="display: none;"></div>
-  
+
+    <div class="divider"></div>
+    
+    <div id="journal-modal" class="modal" style="display: none;">
+      <div class="modal-content" id="journal-form">
+
+        <!-- Close button top right -->
+        <button id="close-modal" class="close-button">&times;</button>
+
+        <h2 id="journal-date-label">Journal Entry</h2>
+    
+        <label>how do you feel today?</label>
+        <select id="mood-select">
+          <option value="">Select</option>
+          <option value="😊">😊 Good</option>
+          <option value="😢">😢 Sad</option>
+          <option value="😡">😡 Angry</option>
+          <option value="🤩">🤩 Excited</option>
+        </select>
+
+        <!-- <label>describe your day</label> -->
+        <textarea id="description" placeholder="Describe your day..."></textarea>
+
+            
+        <label for="image-upload" class="custom-file-upload">upload image</label>        
+        <input type="file" id="image-upload" accept="image/*" style="display:none;" />
+        <img id="image-preview" src="" alt="Image preview" style="max-width: 100px; display: none; margin-top: 10px;" />
+
+    
+        <div class="auth-buttons">
+          <button id="save-entry">Save</button>
+          <button id="clear-entry" style="display: none;">Clear</button>
+        </div>
+      </div>
+    </div>
+    
 </body>
 </html>

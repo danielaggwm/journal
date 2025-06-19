@@ -24,6 +24,10 @@ body {
   }
   
 
+.divider {
+  margin: 2rem;
+}
+
 .modal {
   position: fixed;
   top: 0;
@@ -65,7 +69,7 @@ body {
 
 .auth-buttons button {
   margin: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   border: none;
   background-color: var(--blue);
   color: white;
@@ -92,6 +96,7 @@ body {
   padding: 0.5rem 1rem;
   border-radius: 40px;
   cursor: pointer;
+  font-size: 0.9rem;
 }
 
 #logout:hover {
@@ -101,7 +106,7 @@ body {
 /* full callendar javascript overriding */
 #calendar {
   max-width: 800px;
-  margin: 2rem auto;
+  margin: 0 auto;
   background-color: var(--dark-lilac);
   border-radius: 10px;
   border: 1px solid var(--dark-purple);
@@ -187,4 +192,70 @@ body {
 .fc .fc-button:focus {
   outline: none !important;
   box-shadow: none !important;
+}
+
+
+/* journal popup */
+#journal-modal .modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+}
+
+#journal-modal label {
+  font-weight: bold;
+  margin-top: 0.5rem;
+  display: block;
+  color: var(--dark-purple);
+}
+
+#journal-modal select,
+#journal-modal textarea {
+  width: 100%;
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--light-blue);
+  font-family: inherit;
+}
+
+#journal-modal textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+/* button for file upload */
+.custom-file-upload {
+  display: inline-block;
+  padding: 8px 16px;
+  cursor: pointer;
+  background-color: var(--medium-orange);
+  border-radius: 20px;
+  font-size: 14px;
+  margin-bottom: 1rem;
+  font-weight: 400 !important;
+  border: 2px solid transparent;
+}
+
+.custom-file-upload:hover {
+  background-color: var(--orange);
+  border: 2px solid var(--dark-purple);
+}
+
+
+.close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: var(--dark-purple);
+  cursor: pointer;
+  padding: 0;
+}
+
+.close-button:hover {
+  color: var(--accent-color); /* or whatever hover color you prefer */
 }
