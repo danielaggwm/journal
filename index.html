@@ -107,9 +107,13 @@
         <textarea id="description" placeholder="Describe your day..."></textarea>
 
             
-        <label for="image-upload" class="custom-file-upload">upload image</label>        
+        <label for="image-upload" id="upload-label" class="custom-file-upload">upload image</label>        
         <input type="file" id="image-upload" accept="image/*" style="display:none;" />
-        <img id="image-preview" src="" alt="Image preview" style="max-width: 100px; display: none; margin-top: 10px;" />
+
+        <div id="image-preview-wrapper" style="display: none; position: relative;">
+          <img id="image-preview" src="" alt="Image preview" />
+          <button id="remove-image" class="remove-image-button">&times;</button>
+        </div>
 
     
         <div class="auth-buttons">

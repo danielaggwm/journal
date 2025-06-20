@@ -199,7 +199,7 @@ body {
 #journal-modal .modal-content {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
   text-align: left;
 }
 
@@ -218,6 +218,10 @@ body {
   border-radius: 8px;
   border: 1px solid var(--light-blue);
   font-family: inherit;
+}
+
+#journal-modal textarea {
+  width: 95% !important;
 }
 
 #journal-modal textarea {
@@ -258,4 +262,33 @@ body {
 
 .close-button:hover {
   color: var(--accent-color); /* or whatever hover color you prefer */
+}
+
+
+/* image preview */
+#image-preview {
+  max-width: 100px;
+  margin: 10px;
+  border: 1px dashed var(--dark-purple);
+  border-radius: 20px;
+  display: block !important;
+}
+
+.remove-image-button {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  background: var(--light-orange);
+  border: none;
+  border-radius: 50%;
+  color: var(--medium-orange);
+  font-size: 16px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.remove-image-button:hover {
+  background: var(--medium-orange);
+  color: var(--orange);
 }

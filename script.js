@@ -66,9 +66,13 @@ async function loadJournalEntry(date) {
     if (data.imageUrl) {
       imgPreview.src = data.imageUrl;
       imgPreview.style.display = 'block';
+      document.getElementById('image-preview-wrapper').style.display = 'block';
+      document.getElementById('upload-label').style.display = 'none';
     } else {
       imgPreview.src = '';
       imgPreview.style.display = 'none';
+      document.getElementById('image-preview-wrapper').style.display = 'none';
+      document.getElementById('upload-label').style.display = 'inline-block';
     }
 
     document.getElementById('clear-entry').style.display = 'inline';
@@ -183,13 +187,33 @@ let selectedDate = null;
 
 function openJournalModal(dateStr) {
   selectedDate = dateStr;
+
+  // Format date nicely (e.g., June 19, 2025)
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  const formattedDate = new Date(dateStr).toLocaleDateString('en-US', options);
+  
+  const [year, month, day] = dateStr.split("-");
+  const localDate = new Date(Number(year), Number(month) - 1, Number(day));
+  const formattedDate = localDate.toLocaleDateString('en-US', options);
+
   document.getElementById('journal-date-label').textContent = formattedDate;
+
+  // Reset form fields
+  document.getElementById('mood-select').value = '';
+  document.getElementById('description').value = '';
   document.getElementById('image-upload').value = '';
+
+  // Reset image preview UI
+  document.getElementById('image-preview').src = '';
+  document.getElementById('image-preview-wrapper').style.display = 'none';
+  document.getElementById('upload-label').style.display = 'inline-block';
+
+  // Show the modal
   document.getElementById('journal-modal').style.display = 'flex';
+
+  // Load saved data (if any)
   loadJournalEntry(dateStr);
 }
+
 
 
 
@@ -208,16 +232,29 @@ document.getElementById('clear-entry').addEventListener('click', async () => {
 });
 
 
+// image upload and preview
+const imageUploadInput = document.getElementById('image-upload');
+const imagePreview = document.getElementById('image-preview');
+const imagePreviewWrapper = document.getElementById('image-preview-wrapper');
+const removeImageButton = document.getElementById('remove-image');
+const uploadLabel = document.getElementById('upload-label');
 
-document.getElementById('image-upload').addEventListener('change', (event) => {
-  const file = event.target.files[0];
-  const imgPreview = document.getElementById('image-preview');
-
+imageUploadInput.addEventListener('change', () => {
+  const file = imageUploadInput.files[0];
   if (file) {
-    imgPreview.src = URL.createObjectURL(file);
-    imgPreview.style.display = 'block';
-  } else {
-    imgPreview.src = '';
-    imgPreview.style.display = 'none';
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      imagePreview.src = e.target.result;
+      imagePreviewWrapper.style.display = 'block';
+      uploadLabel.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
   }
+});
+
+removeImageButton.addEventListener('click', () => {
+  imageUploadInput.value = '';
+  imagePreview.src = '';
+  imagePreviewWrapper.style.display = 'none';
+  uploadLabel.style.display = 'inline-block';
 });
