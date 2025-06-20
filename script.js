@@ -14,7 +14,64 @@ import {
   ref, uploadBytes, getDownloadURL, deleteObject
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
 
-let auth; // ✅ global declaration
+let auth; 
+let calendar; 
+let currentViewMode = 'mood';
+
+// Reusable function to create and render the calendar views
+function renderCalendar() {
+  const calendarEl = document.getElementById('calendar');
+
+  if (calendar) {
+    calendar.destroy();
+  }
+
+  calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    dateClick: function (info) {
+      openJournalModal(info.dateStr);
+    },
+    dayCellDidMount: async function (info) {
+      const dateStr = info.date.toISOString().split('T')[0];
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const entryRef = doc(db, "journalEntries", `${user.uid}_${dateStr}`);
+      const docSnap = await getDoc(entryRef);
+      if (!docSnap.exists()) return;
+      const data = docSnap.data();
+
+      if (currentViewMode === 'image' && data.imageUrl) {
+        info.el.style.backgroundImage = `url(${data.imageUrl})`;
+        info.el.style.backgroundSize = 'cover';
+        info.el.style.backgroundPosition = 'center';
+      }
+
+      if (currentViewMode === 'mood' && data.mood) {
+        const colorMap = {
+          good: 'green',
+          sad: 'blue',
+          angry: 'red',
+          excited: 'orange'
+        };
+
+        const circle = document.createElement('div');
+        circle.style.position = 'absolute';
+        circle.style.bottom = '5px';
+        circle.style.right = '5px';
+        circle.style.width = '12px';
+        circle.style.height = '12px';
+        circle.style.borderRadius = '50%';
+        circle.style.backgroundColor = colorMap[data.mood] || 'gray';
+
+        info.el.style.position = 'relative';
+        info.el.appendChild(circle);
+      }
+    }
+  });
+
+  calendar.render();
+}
 
 // journal entry firebase logic
 const db = window.firebaseApp.db;
@@ -58,8 +115,6 @@ async function saveJournalEntry(date) {
     imageUrl,
     timestamp: new Date()
   });
-
-  alert("Saved!");
 }
 
 
@@ -124,87 +179,48 @@ async function clearJournalEntry(date) {
   } catch (err) {
     console.log("No image to delete");
   }
-
-  alert("Entry cleared.");
 }
 
   
+document.addEventListener('DOMContentLoaded', () => {
+  auth = window.firebaseApp?.auth;
+  if (!auth) return console.error("Firebase auth not initialized.");
 
-
-  document.addEventListener('DOMContentLoaded', () => {
-     auth = window.firebaseApp?.auth;
-  
-    if (!auth) {
-      console.error("Firebase auth is not initialized yet.");
-      return;
-    }
-  
-    // Auth listeners
-    document.getElementById('signup').addEventListener('click', () => {
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-  
-      createUserWithEmailAndPassword(auth, email, pass)
-        .then(() => alert("Signup successful"))
-        .catch(err => alert(err.message));
-    });
-  
-    document.getElementById('login').addEventListener('click', () => {
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-  
-      signInWithEmailAndPassword(auth, email, pass)
-        // .then(() => alert("Login successful"))
-        .catch(err => alert(err.message));
-    });
-  
-    document.getElementById('logout').addEventListener('click', () => {
-      signOut(auth);
-    });
-  
-    onAuthStateChanged(auth, user => {
-        if (user) {
-          document.getElementById('auth-modal').style.display = 'none';
-          document.getElementById('logout-wrapper').style.display = 'block';
-          document.getElementById('calendar').style.display = 'block';
-        } else {
-          document.getElementById('auth-modal').style.display = 'flex';
-          document.getElementById('logout-wrapper').style.display = 'none';
-          document.getElementById('calendar').style.display = 'none';
-        }
-    });
-  
-    // FullCalendar (no import)
-    let calendar; // declare globally so we can reuse
-
-    onAuthStateChanged(auth, user => {
-    if (user) {
-        document.getElementById('auth-modal').style.display = 'none';
-        document.getElementById('logout-wrapper').style.display = 'block';
-        document.getElementById('calendar').style.display = 'block';
-
-        if (!calendar) {
-        const calendarEl = document.getElementById('calendar');
-        calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            dateClick: function (info) {
-              openJournalModal(info.dateStr);
-            }            
-        });
-
-        calendar.render();
-        } else {
-        calendar.updateSize(); // re-calculate layout
-        }
-
-    } else {
-        document.getElementById('auth-modal').style.display = 'flex';
-        document.getElementById('logout-wrapper').style.display = 'none';
-        document.getElementById('calendar').style.display = 'none';
-    }
-    }); 
+  // Auth buttons
+  document.getElementById('signup').addEventListener('click', () => {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+    createUserWithEmailAndPassword(auth, email, pass)
+      .then(() => alert("Signup successful"))
+      .catch(err => alert(err.message));
   });
-  
+
+  document.getElementById('login').addEventListener('click', () => {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+    signInWithEmailAndPassword(auth, email, pass)
+      .catch(err => alert(err.message));
+  });
+
+  document.getElementById('logout').addEventListener('click', () => {
+    signOut(auth);
+  });
+
+  // SINGLE onAuthStateChanged
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      document.getElementById('auth-modal').style.display = 'none';
+      document.getElementById('logout-wrapper').style.display = 'block';
+      document.getElementById('calendar').style.display = 'block';
+      renderCalendar(); // ⬅️ Only one calendar render
+    } else {
+      document.getElementById('auth-modal').style.display = 'flex';
+      document.getElementById('logout-wrapper').style.display = 'none';
+      document.getElementById('calendar').style.display = 'none';
+    }
+  });
+});
+
 
 // journal entry pop up 
 let selectedDate = null;
@@ -307,4 +323,21 @@ moodButtons.forEach(button => {
     button.classList.add('selected');
     selectedMoodInput.value = button.dataset.mood;
   });
+});
+
+document.getElementById('toggle-view').addEventListener('click', () => {
+  currentViewMode = currentViewMode === 'mood' ? 'image' : 'mood';
+  renderCalendar(); // re-render calendar with updated view mode
+});
+
+document.getElementById('save-entry').addEventListener('click', async () => {
+  await saveJournalEntry(selectedDate);
+  document.getElementById('journal-modal').style.display = 'none';
+  renderCalendar(); // re-render to update UI
+});
+
+document.getElementById('clear-entry').addEventListener('click', async () => {
+  await clearJournalEntry(selectedDate);
+  document.getElementById('journal-modal').style.display = 'none';
+  renderCalendar(); // re-render to remove the mood circle
 });

@@ -108,7 +108,7 @@ body {
   margin: 0 auto;
   background-color: var(--dark-lilac);
   border-radius: 10px;
-  border: 1px solid var(--dark-purple);
+  border: 1px solid var(--purple);
   padding: 1rem;
 }
 
@@ -129,9 +129,12 @@ body {
   color: white;
 }
 
+/* title */
 .fc-toolbar-title {
-  font-size: 2rem;
+  font-size: 2rem !important;
   color: var(--dark-purple);
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
 }
 
 /* grid */
@@ -224,6 +227,7 @@ body {
   margin-top: 0.5rem;
   display: block;
   color: var(--dark-purple);
+  font-family: "Poppins", sans-serif;
 }
 
 #journal-modal select,
@@ -357,4 +361,30 @@ body {
 
 .mood-button.selected {
   transform: scale(1.2);
+}
+
+
+/* description text */
+#description {
+  font-size: 1rem;
+}
+
+/* filter button */
+#toggle-view {
+  position: absolute;
+  left: 10px;
+  z-index: 999;
+  padding: 0.5rem 1rem;
+  margin-left: 1rem;
+  border-radius: 40px;
+  border: 1px solid var(--dark-purple);
+  background-color: var(--beige);
+  color: var(--dark-purple);
+  font-size: 0.9rem;
+}
+
+#toggle-view:hover {
+  background-color: var(--orange);
+  cursor: pointer;
+  color: white;
 }
