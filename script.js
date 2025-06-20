@@ -24,7 +24,7 @@ async function saveJournalEntry(date) {
   const user = auth.currentUser;
   if (!user) return alert("Not logged in");
 
-  const mood = document.getElementById('mood-select').value;
+  const mood = document.getElementById('selected-mood').value;
   const description = document.getElementById('description').value;
   const imageFile = document.getElementById('image-upload').files[0];
 
@@ -74,7 +74,17 @@ async function loadJournalEntry(date) {
 
   if (docSnap.exists()) {
     const data = docSnap.data();
-    document.getElementById('mood-select').value = data.mood;
+
+    // Set mood visually and in hidden input
+    moodButtons.forEach(btn => {
+      if (btn.dataset.mood === data.mood) {
+        btn.classList.add('selected');
+        selectedMoodInput.value = data.mood;
+      } else {
+        btn.classList.remove('selected');
+      }
+    });
+
     document.getElementById('description').value = data.description;
 
     if (data.imageUrl) {
@@ -224,6 +234,9 @@ function openJournalModal(dateStr) {
   // Show the modal
   document.getElementById('journal-modal').style.display = 'flex';
 
+  
+  moodButtons.forEach(btn => btn.classList.remove('selected'));
+  selectedMoodInput.value = '';
   // Load saved data (if any)
   loadJournalEntry(dateStr);
 }
