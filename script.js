@@ -258,3 +258,15 @@ removeImageButton.addEventListener('click', () => {
   imagePreviewWrapper.style.display = 'none';
   uploadLabel.style.display = 'inline-block';
 });
+
+// mood selections
+const moodButtons = document.querySelectorAll('.mood-button');
+const selectedMoodInput = document.getElementById('selected-mood');
+
+moodButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    moodButtons.forEach(btn => btn.classList.remove('selected'));
+    button.classList.add('selected');
+    selectedMoodInput.value = button.dataset.mood;
+  });
+});

@@ -97,13 +97,23 @@
         <h2 id="journal-date-label">Journal Entry</h2>
     
         <label>how do you feel today?</label>
-        <select id="mood-select">
-          <option value="">Select</option>
-          <option value="😊">😊 Good</option>
-          <option value="😢">😢 Sad</option>
-          <option value="😡">😡 Angry</option>
-          <option value="🤩">🤩 Excited</option>
-        </select>
+
+        <div id="mood-select" class="mood-row">
+          <button class="mood-button" data-mood="good" aria-label="Good">
+            <img src="/journal/icons/good.svg" alt="Good mood" />
+          </button>
+          <button class="mood-button" data-mood="sad" aria-label="Sad">
+            <img src="/journal/icons/sad.svg" alt="Sad mood" />
+          </button>
+          <button class="mood-button" data-mood="angry" aria-label="Angry">
+            <img src="/journal/icons/angry.svg" alt="Angry mood" />
+          </button>
+          <button class="mood-button" data-mood="excited" aria-label="Excited">
+            <img src="/journal/icons/excited.svg" alt="Excited mood" />
+          </button>
+        </div>
+        <input type="hidden" id="selected-mood" name="mood" />
+        
 
         <!-- <label>describe your day</label> -->
         <textarea id="description" placeholder="Describe your day..."></textarea>
