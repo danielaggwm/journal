@@ -288,6 +288,7 @@ body {
   border: 1px dashed var(--dark-purple);
   border-radius: 20px;
   display: block !important;
+  cursor: pointer;
 }
 
 .remove-image-button {
@@ -308,6 +309,29 @@ body {
   background: var(--medium-orange);
   color: var(--orange);
 }
+
+/* Blur background and fullscreen image */
+.image-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(10px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#full-image {
+  max-width: 70%;
+  max-height: 70%;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  cursor: zoom-out;
+}
+
 
 /* mood selections */
 .mood-row {

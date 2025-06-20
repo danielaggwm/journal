@@ -31,9 +31,22 @@ async function saveJournalEntry(date) {
   let imageUrl = "";
 
   if (imageFile) {
-    const storageRef = ref(storage, `journalImages/${user.uid}_${date}`);
-    await uploadBytes(storageRef, imageFile);
-    imageUrl = await getDownloadURL(storageRef);
+    try {
+      // Compress the image
+      const compressedFile = await imageCompression(imageFile, {
+        maxSizeMB: 0.2, // Compress to ~200KB
+        maxWidthOrHeight: 1000, // Optional resize
+        useWebWorker: true,
+      });
+
+      const storageRef = ref(storage, `journalImages/${user.uid}_${date}`);
+      await uploadBytes(storageRef, compressedFile);
+      imageUrl = await getDownloadURL(storageRef);
+    } catch (error) {
+      console.error("Image compression/upload failed:", error);
+      alert("Image upload failed.");
+      return;
+    }
   }
 
   const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
@@ -48,6 +61,7 @@ async function saveJournalEntry(date) {
 
   alert("Saved!");
 }
+
 
 async function loadJournalEntry(date) {
   const user = auth.currentUser;
@@ -238,6 +252,8 @@ const imagePreview = document.getElementById('image-preview');
 const imagePreviewWrapper = document.getElementById('image-preview-wrapper');
 const removeImageButton = document.getElementById('remove-image');
 const uploadLabel = document.getElementById('upload-label');
+const imageOverlay = document.getElementById('image-overlay');
+const fullImage = document.getElementById('full-image');
 
 imageUploadInput.addEventListener('change', () => {
   const file = imageUploadInput.files[0];
@@ -257,6 +273,15 @@ removeImageButton.addEventListener('click', () => {
   imagePreview.src = '';
   imagePreviewWrapper.style.display = 'none';
   uploadLabel.style.display = 'inline-block';
+});
+
+imagePreview.addEventListener('click', () => {
+  fullImage.src = imagePreview.src;
+  imageOverlay.style.display = 'flex';
+});
+
+imageOverlay.addEventListener('click', () => {
+  imageOverlay.style.display = 'none';
 });
 
 // mood selections

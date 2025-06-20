@@ -61,7 +61,11 @@
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     
+    <!-- image resizer -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
+
     <script type="module" src="script.js"></script>
+
 
 </head>
 <body>
@@ -112,13 +116,12 @@
             <img src="/journal/icons/excited.svg" alt="Excited mood" />
           </button>
         </div>
-        <input type="hidden" id="selected-mood" name="mood" />
-        
 
+        <input type="hidden" id="selected-mood" name="mood" />
+      
         <!-- <label>describe your day</label> -->
         <textarea id="description" placeholder="Describe your day..."></textarea>
 
-            
         <label for="image-upload" id="upload-label" class="custom-file-upload">upload image</label>        
         <input type="file" id="image-upload" accept="image/*" style="display:none;" />
 
@@ -133,6 +136,10 @@
           <button id="clear-entry" style="display: none;">Clear</button>
         </div>
       </div>
+    </div>
+
+    <div id="image-overlay" class="image-overlay" style="display: none;">
+      <img id="full-image" src="" alt="Full image preview" />
     </div>
     
 </body>
