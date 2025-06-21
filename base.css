@@ -19,7 +19,7 @@
 body {
     margin: 0;
     min-height: 100vh;
-    background: linear-gradient(to bottom, var(--lilac), var(--beige)); 
+    background: linear-gradient(to bottom, var(--light-orange), var(--light-liliac)); 
     font-family: "Poppins", sans-serif;
   }
   
@@ -106,9 +106,9 @@ body {
 #calendar {
   max-width: 800px;
   margin: 0 auto;
-  background-color: var(--dark-lilac);
+  /* background-color: var(--dark-lilac); */
   border-radius: 10px;
-  border: 1px solid var(--purple);
+  border: 1px solid transparent;
   padding: 1rem;
 }
 
@@ -139,7 +139,8 @@ body {
 
 /* grid */
 .fc-daygrid-day {
-  background-color: var(--light-liliac); 
+  background-color: var(--beige); 
+  /* background-color: white; */
   transition: background-color 0.2s ease;
   border: 1px dashed var(--dark-lilac) !important;
   color: var(--dark-purple);
@@ -392,7 +393,7 @@ body {
 }
 
 
-#toggle-view:hover {
+#view-mode-selector:hover {
   background-color: var(--orange);
   cursor: pointer;
   color: white;
