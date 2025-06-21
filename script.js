@@ -325,9 +325,9 @@ moodButtons.forEach(button => {
   });
 });
 
-document.getElementById('toggle-view').addEventListener('click', () => {
-  currentViewMode = currentViewMode === 'mood' ? 'image' : 'mood';
-  renderCalendar(); // re-render calendar with updated view mode
+document.getElementById('view-mode-selector').addEventListener('change', (e) => {
+  currentViewMode = e.target.value;
+  renderCalendar();
 });
 
 document.getElementById('save-entry').addEventListener('click', async () => {
@@ -341,3 +341,6 @@ document.getElementById('clear-entry').addEventListener('click', async () => {
   document.getElementById('journal-modal').style.display = 'none';
   renderCalendar(); // re-render to remove the mood circle
 });
+
+
+

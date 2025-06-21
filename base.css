@@ -370,7 +370,7 @@ body {
 }
 
 /* filter button */
-#toggle-view {
+#view-mode-selector {
   position: absolute;
   left: 10px;
   z-index: 999;
@@ -382,6 +382,7 @@ body {
   color: var(--dark-purple);
   font-size: 0.9rem;
 }
+
 
 #toggle-view:hover {
   background-color: var(--orange);
