@@ -374,13 +374,21 @@ body {
   position: absolute;
   left: 10px;
   z-index: 999;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.5rem;
   margin-left: 1rem;
   border-radius: 40px;
   border: 1px solid var(--dark-purple);
   background-color: var(--beige);
   color: var(--dark-purple);
   font-size: 0.9rem;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('/journal/icons/down-arrow.svg');
+  background-repeat: no-repeat;
+  background-position: calc(100% - 0.3rem) center ;
+  background-size: 20px;
 }
 
 
