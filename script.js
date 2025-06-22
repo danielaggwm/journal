@@ -357,15 +357,19 @@ function setThemeColor(color) {
 function updateUIState() {
   if (authModal.style.display === 'flex') {
     setThemeColor('#f4eefe');
-    viewModeSelector.style.display = 'block';
+    viewModeSelector.style.visibility = 'visible';
+    viewModeSelector.style.opacity = '1';
   } else if (journalModal.style.display === 'flex') {
     setThemeColor('#f4eefe');
-    viewModeSelector.style.display = 'none'; // hide selector when journal modal is open
+    viewModeSelector.style.visibility = 'hidden';
+    viewModeSelector.style.opacity = '0';
   } else {
     setThemeColor('#ffd3ce');
-    viewModeSelector.style.display = 'block'; // show it otherwise
+    viewModeSelector.style.visibility = 'visible';
+    viewModeSelector.style.opacity = '1';
   }
 }
+
 
 // Use MutationObserver to detect modal open/close changes
 const observer = new MutationObserver(updateUIState);
