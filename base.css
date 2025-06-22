@@ -155,7 +155,7 @@ body {
 
 /* today */
 .fc-day-today {
-  background-color: var(--light-orange) !important;
+  background-color: #fa9d9378 !important;
   font-weight: bold;
 }
 
