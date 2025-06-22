@@ -342,5 +342,30 @@ document.getElementById('clear-entry').addEventListener('click', async () => {
   renderCalendar(); // re-render to remove the mood circle
 });
 
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+
+function setThemeColor(color) {
+  if (themeMeta) {
+    themeMeta.setAttribute("content", color);
+  }
+}
+
+// When auth modal opens
+const authModal = document.getElementById('auth-modal');
+const journalModal = document.getElementById('journal-modal');
+
+// Listen for display changes on modals
+const observer = new MutationObserver(() => {
+  if (authModal.style.display === 'flex') {
+    setThemeColor('#f4eefe'); // login modal color
+  } else if (journalModal.style.display === 'flex') {
+    setThemeColor('#f4eefe'); // journal modal color
+  } else {
+    setThemeColor('#ffd3ce'); // default calendar page
+  }
+});
+
+observer.observe(authModal, { attributes: true, attributeFilter: ['style'] });
+observer.observe(journalModal, { attributes: true, attributeFilter: ['style'] });
 
 
