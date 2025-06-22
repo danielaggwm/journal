@@ -144,6 +144,7 @@ body {
   transition: background-color 0.2s ease;
   border: 1px dashed var(--dark-lilac) !important;
   color: var(--dark-purple);
+  border-radius: 8px;
 }
 
 /* hover over days */
@@ -160,7 +161,7 @@ body {
 
 /* column header */
 .fc .fc-scroller-harness {
-  background-color: var(--light-blue);
+  /* background-color: var(--light-blue); */
 }
 
 .fc .fc-col-header-cell-cushion {
@@ -172,7 +173,7 @@ body {
 }
 
 .fc-theme-standard td, .fc-theme-standard th {
-  border: 1px solid var(--dark-lilac);
+  /* border: 1px solid var(--dark-lilac); */
 }
 
 .fc .fc-col-header-cell-cushion {
@@ -180,14 +181,21 @@ body {
   padding: 6px;
 }
 
-/* grid */
-.fc-daygrid-day  {
-  border-top: none !important;
+
+
+.fc-daygrid-body table { 
+  border-spacing: 5px; 
+  border-collapse: separate; 
 }
 
+.fc-theme-standard td, .fc-theme-standard th {
+  border: none;
+}
+
+/* grid */
 .fc-scrollgrid {
   border-radius: 12px;
-  overflow: hidden;
+  overflow: hidden !important;
 }
 
 .fc-daygrid-day-number {
@@ -199,19 +207,58 @@ body {
   box-shadow: none !important;
 }
 
+.fc-view-harness, .fc-view-harness-active {
+  height: 700px !important;
+}
 
+.fc-body, .fc-row {
+  height: 30px !important;
+}
 
 @media (max-width: 400px) {
   #calendar {
     margin-top: 1rem;
-    height: 550px; 
     overflow: visible !important; 
   }
   
   .fc-daygrid {
-    margin-top: 1rem;
-    height: 415px !important;
+    margin-top: 0px;
     overflow: visible !important; 
+  }
+
+  .fc-daygrid-body table { 
+    border-spacing: 2px; 
+    border-collapse: separate; 
+  }
+
+  .fc-scrollgrid-sync-table {
+    height: 300px !important;
+  }
+
+  .fc-toolbar-title {
+    font-size: 1.7rem !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  } 
+
+  .fc .fc-button {
+    padding: 6px 10px;
+  }
+
+  .fc-toolbar {
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .fc-toolbar-title {
+    order: 1;
+    text-align: center;
+    width: 100%;
+    font-size: 1.2rem;
+    word-wrap: break-word;
+    margin-bottom: 0.7rem !important;
   }
 }
 
@@ -379,7 +426,7 @@ body {
   margin-left: 1rem;
   border-radius: 40px;
   border: 1px solid var(--dark-purple);
-  background-color: var(--beige);
+  background-color: var(--medium-orange);
   color: var(--dark-purple);
   font-size: 0.9rem;
 
