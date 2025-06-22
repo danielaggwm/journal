@@ -342,7 +342,11 @@ document.getElementById('clear-entry').addEventListener('click', async () => {
   renderCalendar(); // re-render to remove the mood circle
 });
 
+
 const themeMeta = document.querySelector('meta[name="theme-color"]');
+const viewModeSelector = document.getElementById('view-mode-selector');
+const authModal = document.getElementById('auth-modal');
+const journalModal = document.getElementById('journal-modal');
 
 function setThemeColor(color) {
   if (themeMeta) {
@@ -350,22 +354,21 @@ function setThemeColor(color) {
   }
 }
 
-// When auth modal opens
-const authModal = document.getElementById('auth-modal');
-const journalModal = document.getElementById('journal-modal');
-
-// Listen for display changes on modals
-const observer = new MutationObserver(() => {
+function updateUIState() {
   if (authModal.style.display === 'flex') {
-    setThemeColor('#f4eefe'); // login modal color
+    setThemeColor('#f4eefe');
+    viewModeSelector.style.display = 'block';
   } else if (journalModal.style.display === 'flex') {
-    setThemeColor('#f4eefe'); // journal modal color
+    setThemeColor('#f4eefe');
+    viewModeSelector.style.display = 'none'; // hide selector when journal modal is open
   } else {
-    setThemeColor('#ffd3ce'); // default calendar page
+    setThemeColor('#ffd3ce');
+    viewModeSelector.style.display = 'block'; // show it otherwise
   }
-});
+}
+
+// Use MutationObserver to detect modal open/close changes
+const observer = new MutationObserver(updateUIState);
 
 observer.observe(authModal, { attributes: true, attributeFilter: ['style'] });
 observer.observe(journalModal, { attributes: true, attributeFilter: ['style'] });
-
-
