@@ -86,8 +86,8 @@
     <div id="logout-wrapper" style="display: none;">
         <button id="logout">Logout</button>
         <select id="view-mode-selector">
-          <option value="mood">Mood</option>
           <option value="image">Image</option>
+          <option value="mood">Mood</option>
         </select>
     </div>
 
@@ -113,41 +113,69 @@
           </button>
         </div>
         
-    
-        <label>How do you feel today?</label>
-
-        <div id="mood-select" class="mood-row">
-          <button class="mood-button" data-mood="good" aria-label="Good">
-            <img src="/journal/icons/good.svg" alt="Good mood" />
-          </button>
-          <button class="mood-button" data-mood="sad" aria-label="Sad">
-            <img src="/journal/icons/sad.svg" alt="Sad mood" />
-          </button>
-          <button class="mood-button" data-mood="angry" aria-label="Angry">
-            <img src="/journal/icons/angry.svg" alt="Angry mood" />
-          </button>
-          <button class="mood-button" data-mood="excited" aria-label="Excited">
-            <img src="/journal/icons/excited.svg" alt="Excited mood" />
-          </button>
+        <div class="mood">
+          <label>How do you feel?</label>
+          <div id="mood-select" class="mood-row">
+            <button class="mood-button" data-mood="good" aria-label="Good">
+              <img src="/journal/icons/good.svg" alt="Good mood" />
+            </button>
+            <button class="mood-button" data-mood="sad" aria-label="Sad">
+              <img src="/journal/icons/sad.svg" alt="Sad mood" />
+            </button>
+            <button class="mood-button" data-mood="angry" aria-label="Angry">
+              <img src="/journal/icons/angry.svg" alt="Angry mood" />
+            </button>
+            <button class="mood-button" data-mood="excited" aria-label="Excited">
+              <img src="/journal/icons/excited.svg" alt="Excited mood" />
+            </button>
+          </div>
         </div>
 
         <input type="hidden" id="selected-mood" name="mood" />
 
 
         <!-- workout -->
-        <div class="workout-container">
-          <label class="workout-label">Did you workout today?</label>
-          <div id="workout-select" class="workout-row">
-            <button class="workout-button" data-workout="no" aria-label="No">
+        <div class="habit-container">
+          <label class="habit-label">Did you workout?</label>
+          <div class="habit-row" id="workout-select">
+            <button class="habit-button" data-value="no">
               <img src="/journal/icons/close.svg" alt="No" />
             </button>
-            <button class="workout-button" data-workout="yes" aria-label="Yes">
+            <button class="habit-button" data-value="yes">
               <img src="/journal/icons/check.svg" alt="Yes" />
             </button>
           </div>
-        </div>        
-        
-        <input type="hidden" id="selected-workout" name="workout" />
+        </div>
+        <input type="hidden" id="selected-workout" />
+
+        <!-- read -->
+        <div class="habit-container">
+          <label class="habit-label">Read a book?</label>
+          <div class="habit-row" id="read-select">
+            <button class="habit-button" data-value="no">
+              <img src="/journal/icons/close.svg" alt="No" />
+            </button>
+            <button class="habit-button" data-value="yes">
+              <img src="/journal/icons/check.svg" alt="Yes" />
+            </button>
+          </div>
+        </div>
+        <input type="hidden" id="selected-read" />
+
+        <!-- called -->
+        <div class="habit-container">
+          <label class="habit-label">Called your parents?</label>
+          <div class="habit-row" id="called-select">
+            <button class="habit-button" data-value="no">
+              <img src="/journal/icons/close.svg" alt="No" />
+            </button>
+            <button class="habit-button" data-value="yes">
+              <img src="/journal/icons/check.svg" alt="Yes" />
+            </button>
+          </div>
+        </div>
+        <input type="hidden" id="selected-called" />
+
       
         <!-- <label>describe your day</label> -->
         <textarea id="description" placeholder="Describe your day..."></textarea>

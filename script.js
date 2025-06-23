@@ -16,7 +16,7 @@ import {
 
 let auth; 
 let calendar; 
-let currentViewMode = 'mood';
+let currentViewMode = 'image';
 
 // Reusable function to create and render the calendar views
 function renderCalendar() {
@@ -82,9 +82,11 @@ async function saveJournalEntry(date) {
   if (!user) return alert("Not logged in");
 
   const mood = document.getElementById('selected-mood').value;
-  const workout = document.getElementById('selected-workout').value;
   const description = document.getElementById('description').value;
   const imageFile = document.getElementById('image-upload').files[0];
+  const workout = document.getElementById('selected-workout').value;
+  const read = document.getElementById('selected-read').value;
+  const called = document.getElementById('selected-called').value;
 
   const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
   let imageUrl = "";
@@ -118,8 +120,10 @@ async function saveJournalEntry(date) {
     date,
     mood,
     workout,
+    read,
+    called,
     description,
-    imageUrl, // this will now retain existing image if none uploaded
+    imageUrl,
     timestamp: new Date()
   });
 }
@@ -137,8 +141,8 @@ async function loadJournalEntry(date) {
 
   if (docSnap.exists()) {
     const data = docSnap.data();
-
-    // Mood UI
+  
+    // Mood UI...
     moodButtons.forEach(btn => {
       if (btn.dataset.mood === data.mood) {
         btn.classList.add('selected');
@@ -147,16 +151,24 @@ async function loadJournalEntry(date) {
         btn.classList.remove('selected');
       }
     });
-
-    // Workout UI
-    workoutButtons.forEach(btn => {
-      if (btn.dataset.workout === data.workout) {
-        btn.classList.add('selected');
-        selectedWorkoutInput.value = data.workout;
-      } else {
-        btn.classList.remove('selected');
-      }
-    });
+  
+    // Habit buttons (yes/no)
+    const habits = [
+      { key: 'workout', buttons: document.querySelectorAll('#workout-select .habit-button'), input: 'selected-workout' },
+      { key: 'read', buttons: document.querySelectorAll('#read-select .habit-button'), input: 'selected-read' },
+      { key: 'called', buttons: document.querySelectorAll('#called-select .habit-button'), input: 'selected-called' }
+    ];
+  
+    habits.forEach(({ key, buttons, input }) => {
+      buttons.forEach(btn => {
+        if (data[key] === btn.dataset.value) {
+          btn.classList.add('selected');
+          document.getElementById(input).value = btn.dataset.value;
+        } else {
+          btn.classList.remove('selected');
+        }
+      });
+    });  
 
     document.getElementById('description').value = data.description;
 
@@ -178,8 +190,17 @@ async function loadJournalEntry(date) {
     moodButtons.forEach(btn => btn.classList.remove('selected'));
     selectedMoodInput.value = '';
 
-    workoutButtons.forEach(btn => btn.classList.remove('selected'));
-    selectedWorkoutInput.value = '';
+    const habits = [
+      { input: 'selected-workout', buttons: document.querySelectorAll('#workout-select .habit-button') },
+      { input: 'selected-read', buttons: document.querySelectorAll('#read-select .habit-button') },
+      { input: 'selected-called', buttons: document.querySelectorAll('#called-select .habit-button') }
+    ];
+    
+    habits.forEach(({ buttons, input }) => {
+      buttons.forEach(btn => btn.classList.remove('selected'));
+      document.getElementById(input).value = '';
+    });
+    
 
     document.getElementById('description').value = '';
     imgPreview.src = '';
@@ -423,14 +444,14 @@ document.getElementById('next-date').addEventListener('click', () => {
 });
 
 // yes / no 
-const workoutButtons = document.querySelectorAll('.workout-button');
-const selectedWorkoutInput = document.getElementById('selected-workout');
-
-workoutButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    workoutButtons.forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
-    selectedWorkoutInput.value = button.dataset.workout; // "yes" or "no"
+['workout', 'read', 'called'].forEach(id => {
+  const buttons = document.querySelectorAll(`#${id}-select .habit-button`);
+  const hiddenInput = document.getElementById(`selected-${id}`);
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      buttons.forEach(btn => btn.classList.remove('selected'));
+      button.classList.add('selected');
+      hiddenInput.value = button.dataset.value || button.dataset.workout;
+    });
   });
 });
-
