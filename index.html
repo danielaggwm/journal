@@ -103,9 +103,18 @@
         <!-- Close button top right -->
         <button id="close-modal" class="close-button">&times;</button>
 
-        <h2 id="journal-date-label">Journal Entry</h2>
+        <div class="journal-date-nav">
+          <button id="prev-date" aria-label="Previous Day">
+            <img src="/journal/icons/left-arrow.svg" alt="Previous Day" />
+          </button>
+          <h2 id="journal-date-label">Journal Entry</h2>
+          <button id="next-date" aria-label="Next Day">
+            <img src="/journal/icons/right-arrow.svg" alt="Next Day" />
+          </button>
+        </div>
+        
     
-        <label>how do you feel today?</label>
+        <label>How do you feel today?</label>
 
         <div id="mood-select" class="mood-row">
           <button class="mood-button" data-mood="good" aria-label="Good">
@@ -123,6 +132,22 @@
         </div>
 
         <input type="hidden" id="selected-mood" name="mood" />
+
+
+        <!-- workout -->
+        <div class="workout-container">
+          <label class="workout-label">Did you workout today?</label>
+          <div id="workout-select" class="workout-row">
+            <button class="workout-button" data-workout="no" aria-label="No">
+              <img src="/journal/icons/close.svg" alt="No" />
+            </button>
+            <button class="workout-button" data-workout="yes" aria-label="Yes">
+              <img src="/journal/icons/check.svg" alt="Yes" />
+            </button>
+          </div>
+        </div>        
+        
+        <input type="hidden" id="selected-workout" name="workout" />
       
         <!-- <label>describe your day</label> -->
         <textarea id="description" placeholder="Describe your day..."></textarea>
@@ -137,7 +162,7 @@
 
     
         <div class="auth-buttons">
-          <button id="save-entry">SAVE JOURNAL</button>
+          <button id="save-entry">Save Journal</button>
           <button id="clear-entry" style="display: none;">Clear</button>
         </div>
       </div>

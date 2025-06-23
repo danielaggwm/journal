@@ -90,8 +90,8 @@ body {
 
 #logout {
   background-color: var(--orange);
-  border: solid 2px transparent;
-  color: white;
+  border: solid 1px var(--dark-purple);
+  color: var(--dark-purple);
   padding: 0.5rem 1rem;
   border-radius: 40px;
   cursor: pointer;
@@ -99,7 +99,7 @@ body {
 }
 
 #logout:hover {
-  border: solid 2px var(--purple);
+  color: white;
 }
 
 /* full callendar javascript overriding */
@@ -263,6 +263,31 @@ body {
 }
 
 /* journal popup */
+.journal-date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.journal-date-nav button {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.journal-date-nav img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) saturate(100%) invert(13%) sepia(18%) saturate(3051%) hue-rotate(230deg) brightness(91%) contrast(92%);
+}
+
+
+
 #journal-modal .modal-content {
   position: relative;
   width: 100%;
@@ -444,4 +469,39 @@ body {
   background-color: var(--orange);
   cursor: pointer;
   color: white;
+}
+
+/* yes and no */
+.workout-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.workout-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.workout-button {
+  background-color: var(--dark-lilac);
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workout-button img {
+  width: 12px;
+  height: 12px;
+}
+
+.workout-button.selected {
+  background-color: var(--dark-purple);
 }

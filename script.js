@@ -82,23 +82,30 @@ async function saveJournalEntry(date) {
   if (!user) return alert("Not logged in");
 
   const mood = document.getElementById('selected-mood').value;
+  const workout = document.getElementById('selected-workout').value;
   const description = document.getElementById('description').value;
   const imageFile = document.getElementById('image-upload').files[0];
 
+  const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
   let imageUrl = "";
+
+  // Get existing imageUrl if it exists
+  const existingSnap = await getDoc(entryRef);
+  if (existingSnap.exists()) {
+    imageUrl = existingSnap.data().imageUrl || "";
+  }
 
   if (imageFile) {
     try {
-      // Compress the image
       const compressedFile = await imageCompression(imageFile, {
-        maxSizeMB: 0.2, // Compress to ~200KB
-        maxWidthOrHeight: 1000, // Optional resize
+        maxSizeMB: 0.2,
+        maxWidthOrHeight: 1000,
         useWebWorker: true,
       });
 
       const storageRef = ref(storage, `journalImages/${user.uid}_${date}`);
       await uploadBytes(storageRef, compressedFile);
-      imageUrl = await getDownloadURL(storageRef);
+      imageUrl = await getDownloadURL(storageRef); // Only updates if a new image was uploaded
     } catch (error) {
       console.error("Image compression/upload failed:", error);
       alert("Image upload failed.");
@@ -106,16 +113,17 @@ async function saveJournalEntry(date) {
     }
   }
 
-  const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
   await setDoc(entryRef, {
     userId: user.uid,
     date,
     mood,
+    workout,
     description,
-    imageUrl,
+    imageUrl, // this will now retain existing image if none uploaded
     timestamp: new Date()
   });
 }
+
 
 
 async function loadJournalEntry(date) {
@@ -130,11 +138,21 @@ async function loadJournalEntry(date) {
   if (docSnap.exists()) {
     const data = docSnap.data();
 
-    // Set mood visually and in hidden input
+    // Mood UI
     moodButtons.forEach(btn => {
       if (btn.dataset.mood === data.mood) {
         btn.classList.add('selected');
         selectedMoodInput.value = data.mood;
+      } else {
+        btn.classList.remove('selected');
+      }
+    });
+
+    // Workout UI
+    workoutButtons.forEach(btn => {
+      if (btn.dataset.workout === data.workout) {
+        btn.classList.add('selected');
+        selectedWorkoutInput.value = data.workout;
       } else {
         btn.classList.remove('selected');
       }
@@ -156,13 +174,22 @@ async function loadJournalEntry(date) {
 
     document.getElementById('clear-entry').style.display = 'inline';
   } else {
-    document.getElementById('mood-select').value = '';
+    // Clear UI states if no data exists
+    moodButtons.forEach(btn => btn.classList.remove('selected'));
+    selectedMoodInput.value = '';
+
+    workoutButtons.forEach(btn => btn.classList.remove('selected'));
+    selectedWorkoutInput.value = '';
+
     document.getElementById('description').value = '';
     imgPreview.src = '';
     imgPreview.style.display = 'none';
+    document.getElementById('image-preview-wrapper').style.display = 'none';
+    document.getElementById('upload-label').style.display = 'inline-block';
     document.getElementById('clear-entry').style.display = 'none';
   }
 }
+
 
 
 async function clearJournalEntry(date) {
@@ -376,3 +403,34 @@ const observer = new MutationObserver(updateUIState);
 
 observer.observe(authModal, { attributes: true, attributeFilter: ['style'] });
 observer.observe(journalModal, { attributes: true, attributeFilter: ['style'] });
+
+
+// journal arrows
+function changeDateBy(days) {
+  const current = new Date(selectedDate);
+  current.setDate(current.getDate() + days);
+  const newDateStr = current.toISOString().split('T')[0];
+  selectedDate = newDateStr;
+  openJournalModal(newDateStr); // This will reload modal contents
+}
+
+document.getElementById('prev-date').addEventListener('click', () => {
+  changeDateBy(-1);
+});
+
+document.getElementById('next-date').addEventListener('click', () => {
+  changeDateBy(1);
+});
+
+// yes / no 
+const workoutButtons = document.querySelectorAll('.workout-button');
+const selectedWorkoutInput = document.getElementById('selected-workout');
+
+workoutButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    workoutButtons.forEach(btn => btn.classList.remove('selected'));
+    button.classList.add('selected');
+    selectedWorkoutInput.value = button.dataset.workout; // "yes" or "no"
+  });
+});
+
