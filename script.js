@@ -408,7 +408,7 @@ function updateUIState() {
     viewModeSelector.style.visibility = 'visible';
     viewModeSelector.style.opacity = '1';
   } else if (journalModal.style.display === 'flex') {
-    setThemeColor('#f4eefe');
+    setThemeColor('#fffdfc');
     viewModeSelector.style.visibility = 'hidden';
     viewModeSelector.style.opacity = '0';
   } else {
