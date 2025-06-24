@@ -495,6 +495,7 @@ body {
   z-index: 999;
   padding: 0.5rem 2rem;
   border-radius: 40px;
+  margin-left: 1rem;
   border: 1px solid var(--dark-purple);
   background-color: var(--medium-orange);
   color: var(--dark-purple);
