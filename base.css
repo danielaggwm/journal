@@ -87,6 +87,7 @@ body {
   border-radius: 40px;
   border: 2px solid transparent;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .auth-buttons button:hover {
@@ -229,12 +230,10 @@ body {
 @media (max-width: 400px) {
   #calendar {
     margin-top: 1rem;
-    overflow: visible !important; 
   }
   
   .fc-daygrid {
     margin-top: 0px;
-    overflow: visible !important; 
   }
 
   .fc-daygrid-body table { 
@@ -400,6 +399,7 @@ body {
 
 #image-preview {
   max-width: 100px;
+  max-height: 120px;
   margin: 10px;
   border: 1px dashed var(--dark-purple);
   border-radius: 20px;
@@ -419,7 +419,14 @@ body {
   width: 24px;
   height: 24px;
   cursor: pointer;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  line-height: 1;
 }
+
 
 .remove-image-button:hover {
   background: var(--medium-orange);
@@ -556,5 +563,9 @@ body {
     border-radius: 0;
     box-shadow: none;
     padding-top: 3rem;
+  }
+
+  html { 
+    overflow-y: hidden;
   }
 }
