@@ -336,13 +336,17 @@ body {
 }
 
 /* button for file upload */
-.custom-file-upload {
-  display: flex !important;
+
+.upload-wrapper {
+  display: flex;
   justify-content: center;
   align-items: center; 
   position: relative;
   margin: 0 auto;
   width: fit-content;
+}
+
+.custom-file-upload {
   padding: 8px 16px;
   cursor: pointer;
   background-color: var(--medium-orange);
