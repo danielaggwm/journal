@@ -41,16 +41,18 @@ function renderCalendar() {
       if (!docSnap.exists()) return;
       const data = docSnap.data();
 
+      // Image mode
       if (currentViewMode === 'image' && data.imageUrl) {
         info.el.style.backgroundImage = `url(${data.imageUrl})`;
         info.el.style.backgroundSize = 'cover';
         info.el.style.backgroundPosition = 'center';
       }
 
+      // Mood mode
       if (currentViewMode === 'mood' && data.mood) {
         const colorMap = {
           good: 'green',
-          sad: 'blue',
+          sad: '#1e81b0',
           angry: 'red',
           excited: 'orange'
         };
@@ -67,11 +69,42 @@ function renderCalendar() {
         info.el.style.position = 'relative';
         info.el.appendChild(circle);
       }
+
+      // Habit view mode with SVG icons
+      if (['workout', 'read', 'called'].includes(currentViewMode)) {
+        const value = data[currentViewMode];
+
+        if (value === 'yes' || value === 'no') {
+          const circle = document.createElement('div');
+          circle.style.position = 'absolute';
+          circle.style.bottom = '5px';
+          circle.style.right = '5px';
+          circle.style.width = '20px';
+          circle.style.height = '20px';
+          circle.style.borderRadius = '50%';
+          circle.style.backgroundColor = value === 'yes' ? 'green' : '#B22222';
+          circle.style.display = 'flex';
+          circle.style.alignItems = 'center';
+          circle.style.justifyContent = 'center';
+
+          const img = document.createElement('img');
+          img.src = value === 'yes' ? '/journal/icons/check.svg' : '/journal/icons/close.svg';
+          img.alt = value;
+          img.style.width = '12px';
+          img.style.height = '12px';
+
+          circle.appendChild(img);
+          info.el.style.position = 'relative';
+          info.el.appendChild(circle);
+        }
+      }
     }
   });
 
   calendar.render();
 }
+
+
 
 // journal entry firebase logic
 const db = window.firebaseApp.db;
