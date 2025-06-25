@@ -39,6 +39,7 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 10;
+  overflow-y: scroll;
 }
 
 .modal-content {
@@ -555,6 +556,7 @@ body {
 @media (max-width: 400px) {
   .modal {
     align-items: flex-start !important;
+    overflow-y: scroll !important;
   }
 
   #journal-modal .modal-content {
@@ -563,9 +565,6 @@ body {
     border-radius: 0;
     box-shadow: none;
     padding-top: 3rem;
-  }
-
-  html { 
-    overflow-y: hidden;
+    
   }
 }
