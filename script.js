@@ -28,10 +28,21 @@ function renderCalendar() {
 
   calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
-    dateClick: function (info) {
+    customButtons: {
+      viewModeSelector: {
+        text: '',
+        click: () => {} 
+      }
+    },
+    headerToolbar: {
+      start: 'viewModeSelector',
+      center: 'title',
+      end: 'today prev,next'
+    },
+    dateClick: function(info) {
       openJournalModal(info.dateStr);
     },
-    dayCellDidMount: async function (info) {
+    dayCellDidMount: async function(info) {
       const dateStr = info.date.toISOString().split('T')[0];
       const user = auth.currentUser;
       if (!user) return;
@@ -41,14 +52,12 @@ function renderCalendar() {
       if (!docSnap.exists()) return;
       const data = docSnap.data();
 
-      // Image mode
       if (currentViewMode === 'image' && data.imageUrl) {
         info.el.style.backgroundImage = `url(${data.imageUrl})`;
         info.el.style.backgroundSize = 'cover';
         info.el.style.backgroundPosition = 'center';
       }
 
-      // Mood mode
       if (currentViewMode === 'mood' && data.mood) {
         const colorMap = {
           good: 'green',
@@ -70,10 +79,8 @@ function renderCalendar() {
         info.el.appendChild(circle);
       }
 
-      // Habit view mode with SVG icons
       if (['workout', 'read', 'called'].includes(currentViewMode)) {
         const value = data[currentViewMode];
-
         if (value === 'yes' || value === 'no') {
           const circle = document.createElement('div');
           circle.style.position = 'absolute';
@@ -102,7 +109,37 @@ function renderCalendar() {
   });
 
   calendar.render();
+
+  // Inject the dropdown into the custom button
+  setTimeout(() => {
+    const button = document.querySelector('.fc-viewModeSelector-button');
+    if (!button || button.querySelector('.filter-dropdown-container')) return;
+
+    const dropdownContainer = document.createElement('div');
+    dropdownContainer.className = 'filter-dropdown-container';
+    dropdownContainer.style.display = 'inline-block';
+    dropdownContainer.style.marginLeft = '20px';
+
+    const select = document.createElement('select');
+    select.className = 'inline-dropdown';
+    select.innerHTML = `
+      <option value="image" ${currentViewMode === 'image' ? 'selected' : ''}>Image</option>
+      <option value="mood" ${currentViewMode === 'mood' ? 'selected' : ''}>Mood</option>
+      <option value="workout" ${currentViewMode === 'workout' ? 'selected' : ''}>Worked out</option>
+      <option value="read" ${currentViewMode === 'read' ? 'selected' : ''}>Read a book</option>
+      <option value="called" ${currentViewMode === 'called' ? 'selected' : ''}>Called parents</option>
+    `;
+
+    select.addEventListener('change', e => {
+      currentViewMode = e.target.value;
+      renderCalendar(); // Re-render to reflect mode
+    });
+
+    dropdownContainer.appendChild(select);
+    button.appendChild(dropdownContainer);
+  }, 0);
 }
+
 
 
 
@@ -262,7 +299,7 @@ async function clearJournalEntry(date) {
   }
 }
 
-  
+// journal entry pop up 
 document.addEventListener('DOMContentLoaded', () => {
   auth = window.firebaseApp?.auth;
   if (!auth) return console.error("Firebase auth not initialized.");
@@ -283,27 +320,34 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(err => alert(err.message));
   });
 
-  document.getElementById('logout').addEventListener('click', () => {
+  document.getElementById('logout').addEventListener('click', (e) => {
+    e.preventDefault();
     signOut(auth);
   });
 
-  // SINGLE onAuthStateChanged
+
+  // onAuthStateChanged
   onAuthStateChanged(auth, user => {
     if (user) {
       document.getElementById('auth-modal').style.display = 'none';
-      document.getElementById('logout-wrapper').style.display = 'block';
+
+      // Show menu and filter
+      document.querySelector('.menu-wrapper').style.display = 'flex'; 
+
       document.getElementById('calendar').style.display = 'block';
-      renderCalendar(); // ⬅️ Only one calendar render
+      renderCalendar();
     } else {
       document.getElementById('auth-modal').style.display = 'flex';
-      document.getElementById('logout-wrapper').style.display = 'none';
+
+      // Hide menu and filter
+      document.querySelector('.menu-wrapper').style.display = 'none';
+
       document.getElementById('calendar').style.display = 'none';
     }
   });
 });
 
 
-// journal entry pop up 
 let selectedDate = null;
 
 function openJournalModal(dateStr) {
@@ -406,10 +450,10 @@ moodButtons.forEach(button => {
   });
 });
 
-document.getElementById('view-mode-selector').addEventListener('change', (e) => {
-  currentViewMode = e.target.value;
-  renderCalendar();
-});
+// document.getElementById('view-mode-selector').addEventListener('change', (e) => {
+//   currentViewMode = e.target.value;
+//   renderCalendar();
+// });
 
 document.getElementById('save-entry').addEventListener('click', async () => {
   await saveJournalEntry(selectedDate);
@@ -425,7 +469,7 @@ document.getElementById('clear-entry').addEventListener('click', async () => {
 
 
 const themeMeta = document.querySelector('meta[name="theme-color"]');
-const viewModeSelector = document.getElementById('view-mode-selector');
+// const viewModeSelector = document.getElementById('view-mode-selector');
 const authModal = document.getElementById('auth-modal');
 const journalModal = document.getElementById('journal-modal');
 
@@ -438,16 +482,10 @@ function setThemeColor(color) {
 function updateUIState() {
   if (authModal.style.display === 'flex') {
     setThemeColor('#f4eefe');
-    viewModeSelector.style.visibility = 'visible';
-    viewModeSelector.style.opacity = '1';
   } else if (journalModal.style.display === 'flex') {
     setThemeColor('#fffdfc');
-    viewModeSelector.style.visibility = 'hidden';
-    viewModeSelector.style.opacity = '0';
   } else {
     setThemeColor('#ffd3ce');
-    viewModeSelector.style.visibility = 'visible';
-    viewModeSelector.style.opacity = '1';
   }
 }
 
@@ -486,5 +524,16 @@ document.getElementById('next-date').addEventListener('click', () => {
       button.classList.add('selected');
       hiddenInput.value = button.dataset.value || button.dataset.workout;
     });
+  });
+});
+
+
+// menu
+document.addEventListener('DOMContentLoaded', () => {
+  const menuButton = document.getElementById('menu-toggle');
+  const menuWrapper = document.querySelector('.menu-wrapper');
+  menuButton.addEventListener('click', () => {
+  menuButton.classList.toggle('open');
+  menuWrapper.classList.toggle('open');
   });
 });

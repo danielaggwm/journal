@@ -80,21 +80,24 @@
             <button id="signup">Sign Up</button>
           </div>
         </div>
-    </div>
+    </div>    
 
-    <!-- LOGOUT BUTTON -->
-    <div id="logout-wrapper" style="display: none;">
-        <button id="logout">Logout</button>
-        <select id="view-mode-selector">
-          <option value="image">Image</option>
-          <option value="mood">Mood</option>
-          <option value="workout">Worked out</option>
-          <option value="read">Read a book</option>
-          <option value="called">Called parents</option>
-        </select>        
-    </div>
-
+    <div class="header-container">
+      <div class="menu-wrapper">
+        <button id="menu-toggle" class="menu-button" aria-label="Toggle menu">
+          <span class="menu-line line1"></span>
+          <span class="menu-line line2"></span>
+        </button>
+        <nav class="menu-items">
+          <a href="#">ABOUT</a>
+          <a href="#">TRENDS</a>
+          <a href="#">CUSTOMIZE</a>
+          <a href="#" id="logout">LOGOUT</a>
+        </nav>
+      </div>
     
+    </div>
+  
     <!-- CALENDAR -->
     <div id="calendar" style="display: none;"></div>
 
@@ -103,8 +106,9 @@
     <div id="journal-modal" class="modal" style="display: none;">
       <div class="modal-content" id="journal-form">
 
-        <!-- Close button top right -->
-        <button id="close-modal" class="close-button">&times;</button>
+        <button id="close-modal" class="close-button">
+          <img src="/journal/icons/close2.svg" alt="Close" />
+        </button>
 
         <div class="journal-date-nav">
           <button id="prev-date" aria-label="Previous Day">
