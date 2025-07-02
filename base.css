@@ -42,11 +42,37 @@ body {
   overflow-y: scroll;
 }
 
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--dark-purple);
+}
+
+.login-wrapper input {
+  width: 280px;
+  margin: 0.5rem 0;
+  padding: 0.8rem;
+  border: 1px solid var(--light-blue);
+  border-radius: 40px;
+  font-size: 17px;
+  color: var(--dark-purple);
+}
+
+.login-wrapper input:focus {
+  outline: none !important;
+}
+
+
+.login-wrapper input::placeholder {
+  color: var(--dark-lilac); 
+}
+
 .modal-content {
   background: var(--beige);
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.03);
   text-align: center;
 }
 
@@ -55,14 +81,7 @@ body {
   color: var(--dark-purple);
 }
 
-.modal-content input {
-  display: block;
-  width: 85%;
-  margin: 0.5rem 0;
-  padding: 0.75rem;
-  border: 1px solid var(--light-blue);
-  border-radius: 8px;
-}
+
 
 .mood {
   display: flex;
@@ -84,7 +103,7 @@ body {
   padding: 0.5rem 1rem;
   border: none;
   background-color: var(--blue);
-  color: white;
+  color: var(--dark-purple);
   border-radius: 40px;
   border: 2px solid transparent;
   cursor: pointer;
@@ -92,13 +111,7 @@ body {
 }
 
 .auth-buttons button:hover {
-  border: solid 2px var(--purple);
-  color: var(--purple);
-}
-
-#logout-wrapper {
-  text-align: right;
-  padding: 1.5rem;
+  border: dashed 2px var(--dark-purple);
 }
 
 /* full callendar javascript overriding */
