@@ -262,10 +262,7 @@ body {
     word-wrap: break-word;
     margin-bottom: 0.2rem !important;
   }
-
-  
 }
-
 
 @media (max-width: 400px) {
   .fc-header-toolbar.fc-toolbar {
@@ -273,29 +270,16 @@ body {
     flex-direction: column;
     align-items: center;
   }
-
-  .fc-header-toolbar.fc-toolbar > .fc-toolbar-chunk {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 0.5rem;
+  .fc-header-toolbar.fc-toolbar .fc-toolbar-chunk-row {
+    margin-top: 0.5rem;
   }
-
-  /* Reorder: title (was 2nd) first, filter (1st) second, controls (3rd) last */
-  .fc-header-toolbar.fc-toolbar > .fc-toolbar-chunk:nth-child(2) {
-    order: 1;
+  .fc-today-button {
+    margin-right: 4px !important;
   }
-  .fc-header-toolbar.fc-toolbar > .fc-toolbar-chunk:nth-child(1) {
-    order: 2;
-  }
-  .fc-header-toolbar.fc-toolbar > .fc-toolbar-chunk:nth-child(3) {
-    order: 3;
-    margin-bottom: 0; 
+  .fc-viewModeSelector-button .filter-dropdown-container {
+    margin-left: 5px !important;
   }
 }
-
-
-
 
 /* journal popup */
 .journal-date-nav {
@@ -677,6 +661,7 @@ body {
 /* filter in calendar */
 .fc-viewModeSelector-button .filter-dropdown-container {
   display: inline-block;
+  margin-left: 7px !important;
 }
 
 .inline-dropdown {
@@ -750,7 +735,9 @@ body {
 
   .inline-dropdown {
     font-size: 0.8rem;
-    width: 150px;
+    width: 140px;
+    padding-left: 1px;
+    background-position: calc(100% - 0.2rem) center;
   }
   
 }

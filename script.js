@@ -18,6 +18,17 @@ let auth;
 let calendar; 
 let currentViewMode = 'image';
 
+let lastIsMobile = window.innerWidth <= 400;
+
+// This will re-render the calendar (and fire datesSet) whenever we cross 400px.
+window.addEventListener('resize', () => {
+  const nowMobile = window.innerWidth <= 400;
+  if (nowMobile !== lastIsMobile) {
+    lastIsMobile = nowMobile;
+    renderCalendar();
+  }
+});
+
 // Reusable function to create and render the calendar views
 function renderCalendar() {
   const calendarEl = document.getElementById('calendar');
@@ -31,7 +42,7 @@ function renderCalendar() {
     customButtons: {
       viewModeSelector: {
         text: '',
-        click: () => {} 
+        click: () => {}
       }
     },
     headerToolbar: {
@@ -105,12 +116,47 @@ function renderCalendar() {
           info.el.appendChild(circle);
         }
       }
+    },
+    datesSet: () => {
+      if (window.innerWidth > 400) return;
+    
+      const toolbar = document.querySelector('.fc-header-toolbar');
+      if (!toolbar) return;
+    
+      const chunks = Array.from(toolbar.querySelectorAll('.fc-toolbar-chunk'));
+      if (chunks.length < 3) return;
+    
+      const [chunk1, chunk2, chunk3] = chunks; // 1=filter, 2=title, 3=controls
+    
+      // Remove any existing wrapper (cleanup)
+      const oldWrapper = toolbar.querySelector('.fc-toolbar-chunk-row');
+      if (oldWrapper) oldWrapper.remove();
+    
+      // Remove the original chunks
+      chunks.forEach(c => c.remove());
+    
+      // Build our new row wrapper for filter + controls
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('fc-toolbar-chunk-row');
+      wrapper.style.display = 'flex';
+      wrapper.style.justifyContent = 'center';
+      wrapper.style.gap = '1rem';
+      wrapper.style.width = '100%';
+      wrapper.style.marginBottom = '0.5rem';
+      wrapper.appendChild(chunk1);
+      wrapper.appendChild(chunk3);
+    
+      // Re-append in the desired order
+      toolbar.appendChild(chunk2);   // Month title
+      toolbar.appendChild(wrapper);  // Filter + controls together
     }
+    
+    
   });
 
   calendar.render();
 
-  // Inject the dropdown into the custom button
+  // Inject filter dropdown into custom button
   setTimeout(() => {
     const button = document.querySelector('.fc-viewModeSelector-button');
     if (!button || button.querySelector('.filter-dropdown-container')) return;
@@ -132,14 +178,13 @@ function renderCalendar() {
 
     select.addEventListener('change', e => {
       currentViewMode = e.target.value;
-      renderCalendar(); // Re-render to reflect mode
+      renderCalendar(); // Refresh view
     });
 
     dropdownContainer.appendChild(select);
     button.appendChild(dropdownContainer);
   }, 0);
 }
-
 
 
 
@@ -301,6 +346,7 @@ async function clearJournalEntry(date) {
 
 // journal entry pop up 
 document.addEventListener('DOMContentLoaded', () => {
+  renderCalendar();
   // —————— Elements ——————
   const menuButton    = document.getElementById('menu-toggle');
   const menuWrapper   = document.querySelector('.menu-wrapper');
@@ -553,3 +599,5 @@ document.getElementById('next-date').addEventListener('click', () => {
     });
   });
 });
+
+
