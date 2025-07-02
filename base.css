@@ -694,6 +694,12 @@ body {
   background-size: 18px;
 }
 
+/* remove the default focus ring */
+.inline-dropdown:focus {
+  outline: none !important;
+}
+
+
 .fc-viewModeSelector-button:hover .inline-dropdown {
   background-color: var(--orange);
 }
@@ -703,11 +709,11 @@ body {
   .menu-wrapper {
     left: 15px;
     top: 15px;
-    position: fixed !important;
+    position: fixed;
     overflow: hidden !important;
     transition: width 0.4s ease, height 0.4s ease;
     background-color: var(--medium-orange);
-    z-index: 1000;
+    z-index: 2;
   }
 
   .menu-wrapper.open {

@@ -304,10 +304,14 @@ document.addEventListener('DOMContentLoaded', () => {
   auth = window.firebaseApp?.auth;
   if (!auth) return console.error("Firebase auth not initialized.");
 
+  const menuWrapper = document.querySelector('.menu-wrapper');
+  const journalModal = document.getElementById('journal-modal');
+  const closeModalBtn = document.getElementById('close-modal');
+
   // Auth buttons
   document.getElementById('signup').addEventListener('click', () => {
     const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
+    const pass  = document.getElementById('password').value;
     createUserWithEmailAndPassword(auth, email, pass)
       .then(() => alert("Signup successful"))
       .catch(err => alert(err.message));
@@ -315,37 +319,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('login').addEventListener('click', () => {
     const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
+    const pass  = document.getElementById('password').value;
     signInWithEmailAndPassword(auth, email, pass)
       .catch(err => alert(err.message));
   });
 
-  document.getElementById('logout').addEventListener('click', (e) => {
+  document.getElementById('logout').addEventListener('click', e => {
     e.preventDefault();
     signOut(auth);
   });
 
-
-  // onAuthStateChanged
+  // When the user logs in or out
   onAuthStateChanged(auth, user => {
     if (user) {
       document.getElementById('auth-modal').style.display = 'none';
-
-      // Show menu and filter
-      document.querySelector('.menu-wrapper').style.display = 'flex'; 
-
+      menuWrapper.style.display   = 'flex';  // show menu
       document.getElementById('calendar').style.display = 'block';
       renderCalendar();
     } else {
       document.getElementById('auth-modal').style.display = 'flex';
-
-      // Hide menu and filter
-      document.querySelector('.menu-wrapper').style.display = 'none';
-
+      menuWrapper.style.display   = 'none';  // hide menu
       document.getElementById('calendar').style.display = 'none';
     }
   });
+
+  // Whenever we open the journal modal, hide the menu
+  window.openJournalModal = (dateStr) => {
+    // existing openJournalModal logic...
+    journalModal.style.display = 'flex';
+    menuWrapper.style.display  = 'none';
+  };
+
+  // Close‐modal button: hide the modal and re-show the menu
+  closeModalBtn.addEventListener('click', () => {
+    journalModal.style.display = 'none';
+    menuWrapper.style.display  = 'flex';
+  });
 });
+
 
 
 let selectedDate = null;
