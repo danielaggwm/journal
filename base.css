@@ -243,7 +243,7 @@ body {
   }
 
   .fc-toolbar-title {
-    font-size: 1.7rem !important;
+    font-size: 1.6rem !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -252,6 +252,7 @@ body {
   .fc .fc-button {
     padding: 6px 10px !important;
     text-transform: uppercase;
+    font-size: 0.8rem;
   }
 
   .fc-toolbar-title {
@@ -714,10 +715,11 @@ body {
     transition: width 0.4s ease, height 0.4s ease;
     background-color: var(--medium-orange);
     z-index: 2;
+    padding: 0.5rem .5rem .5rem .5rem;
   }
 
   .menu-wrapper.open {
-    width: 85vw !important;
+    width: 88vw !important;
     height: 92vh !important;   
     border-radius: 10px;   
     align-items: normal !important;
@@ -745,5 +747,11 @@ body {
     font-size: 1.5rem;
     text-align: center;
   }
+
+  .inline-dropdown {
+    font-size: 0.8rem;
+    width: 150px;
+  }
+  
 }
 
