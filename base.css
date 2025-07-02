@@ -3,7 +3,8 @@
 } */
 
 :root {
-  --light-liliac: #f3f0f9;  
+  --super-lilac: #f4f0fb;  
+  --light-liliac: #fbf9fe;  
   --lilac: #f4eefe;  
   --dark-lilac: #cec6db;  
   --beige: #fffdfc;  
@@ -69,11 +70,11 @@ body {
 }
 
 .modal-content {
-  background: var(--beige);
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.03);
   text-align: center;
+  border: 1px dashed var(--dark-lilac);
+  background-color: white;
 }
 
 .modal-content h2 {
@@ -182,7 +183,6 @@ body {
 /* column header */
 .fc .fc-scroller-harness {
   text-transform: uppercase;
-  /* background-color: var(--light-blue); */
 }
 
 .fc .fc-col-header-cell-cushion {
@@ -512,7 +512,20 @@ body {
 /* description text */
 #description {
   font-size: 1rem;
+  color: var(--dark-purple); 
+  border-radius: 10px;
 }
+
+#description:focus {
+  outline: none !important;
+  border-color: var(--blue); 
+}
+
+#description::placeholder {
+  color: var(--dark-purple);
+  opacity: 0.5; 
+}
+
 
 /* yes and no */
 .habit-container {
@@ -553,6 +566,10 @@ body {
   .modal {
     align-items: flex-start !important;
     overflow-y: scroll !important;
+  }
+
+  .modal-content {
+    border: none;
   }
 
   #journal-modal .modal-content {
