@@ -344,7 +344,7 @@ async function clearJournalEntry(date) {
   }
 }
 
-// journal entry pop up 
+
 document.addEventListener('DOMContentLoaded', () => {
   renderCalendar();
   // —————— Elements ——————
@@ -385,8 +385,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = document.getElementById('email').value;
     const pass  = document.getElementById('password').value;
     signInWithEmailAndPassword(auth, email, pass)
+      .then(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // scroll to top
+      })
       .catch(err => alert(err.message));
-  });
+  });  
 
   document.getElementById('logout').addEventListener('click', e => {
     e.preventDefault();
