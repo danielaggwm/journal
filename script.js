@@ -301,14 +301,32 @@ async function clearJournalEntry(date) {
 
 // journal entry pop up 
 document.addEventListener('DOMContentLoaded', () => {
+  // —————— Elements ——————
+  const menuButton    = document.getElementById('menu-toggle');
+  const menuWrapper   = document.querySelector('.menu-wrapper');
+  const menuLinks     = document.querySelectorAll('.menu-items a');
+  const journalModal  = document.getElementById('journal-modal');
+  const closeModalBtn = document.getElementById('close-modal');
+  const authModal     = document.getElementById('auth-modal');
+
   auth = window.firebaseApp?.auth;
   if (!auth) return console.error("Firebase auth not initialized.");
 
-  const menuWrapper = document.querySelector('.menu-wrapper');
-  const journalModal = document.getElementById('journal-modal');
-  const closeModalBtn = document.getElementById('close-modal');
+  // —————— MENU: open/close toggle ——————
+  menuButton.addEventListener('click', () => {
+    menuButton.classList.toggle('open');
+    menuWrapper.classList.toggle('open');
+  });
 
-  // Auth buttons
+  // —————— MENU: collapse on any link click ——————
+  menuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      menuButton.classList.remove('open');
+      menuWrapper.classList.remove('open');
+    });
+  });
+
+  // —————— AUTH: Signup, Login, Logout ——————
   document.getElementById('signup').addEventListener('click', () => {
     const email = document.getElementById('email').value;
     const pass  = document.getElementById('password').value;
@@ -326,38 +344,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('logout').addEventListener('click', e => {
     e.preventDefault();
+    // collapse the menu before logging out
+    menuButton.classList.remove('open');
+    menuWrapper.classList.remove('open');
     signOut(auth);
   });
 
-  // When the user logs in or out
+  // —————— AUTH STATE: show/hide UI ——————
   onAuthStateChanged(auth, user => {
     if (user) {
-      document.getElementById('auth-modal').style.display = 'none';
-      menuWrapper.style.display   = 'flex';  // show menu
+      authModal.style.display        = 'none';
+      menuWrapper.style.display      = 'flex';
       document.getElementById('calendar').style.display = 'block';
       renderCalendar();
     } else {
-      document.getElementById('auth-modal').style.display = 'flex';
-      menuWrapper.style.display   = 'none';  // hide menu
+      authModal.style.display        = 'flex';
+      menuWrapper.style.display      = 'none';
       document.getElementById('calendar').style.display = 'none';
     }
   });
 
-  // Whenever we open the journal modal, hide the menu
-  window.openJournalModal = (dateStr) => {
-    // existing openJournalModal logic...
+  // —————— JOURNAL MODAL: open/close ——————
+  window.openJournalModal = dateStr => {
+    // your existing logic to populate the modal...
     journalModal.style.display = 'flex';
-    menuWrapper.style.display  = 'none';
+    // hide the menu when modal is open
+    menuButton.classList.remove('open');
+    menuWrapper.classList.remove('open');
   };
 
-  // Close‐modal button: hide the modal and re-show the menu
   closeModalBtn.addEventListener('click', () => {
     journalModal.style.display = 'none';
-    menuWrapper.style.display  = 'flex';
+    // restore menu visibility (if user is signed in)
+    if (auth.currentUser) {
+      menuWrapper.style.display = 'flex';
+    }
   });
 });
-
-
 
 let selectedDate = null;
 
@@ -392,9 +415,6 @@ function openJournalModal(dateStr) {
   // Load saved data (if any)
   loadJournalEntry(dateStr);
 }
-
-
-
 
 document.getElementById('close-modal').addEventListener('click', () => {
   document.getElementById('journal-modal').style.display = 'none';
@@ -461,10 +481,6 @@ moodButtons.forEach(button => {
   });
 });
 
-// document.getElementById('view-mode-selector').addEventListener('change', (e) => {
-//   currentViewMode = e.target.value;
-//   renderCalendar();
-// });
 
 document.getElementById('save-entry').addEventListener('click', async () => {
   await saveJournalEntry(selectedDate);
@@ -535,16 +551,5 @@ document.getElementById('next-date').addEventListener('click', () => {
       button.classList.add('selected');
       hiddenInput.value = button.dataset.value || button.dataset.workout;
     });
-  });
-});
-
-
-// menu
-document.addEventListener('DOMContentLoaded', () => {
-  const menuButton = document.getElementById('menu-toggle');
-  const menuWrapper = document.querySelector('.menu-wrapper');
-  menuButton.addEventListener('click', () => {
-  menuButton.classList.toggle('open');
-  menuWrapper.classList.toggle('open');
   });
 });
