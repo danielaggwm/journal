@@ -858,6 +858,10 @@ body {
   .habit-customization h1 {
     margin-top: 2rem;
   }
+
+  #save-button {
+    width: 125px;
+  }
 }
 
 
