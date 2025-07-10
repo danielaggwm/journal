@@ -29,13 +29,25 @@ window.addEventListener('resize', () => {
   }
 });
 
-// Reusable function to create and render the calendar views
-function renderCalendar() {
+
+async function renderCalendar() {
   const calendarEl = document.getElementById('calendar');
 
   if (calendar) {
     calendar.destroy();
   }
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // Fetch latest habit labels
+  const habitDocRef = doc(db, "habitLabels", user.uid);
+  const docSnap = await getDoc(habitDocRef);
+  const habitLabels = docSnap.exists() ? docSnap.data() : {
+    habit1: 'Worked out?',
+    habit2: 'Read a book?',
+    habit3: 'Called your parents?'
+  };
 
   calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
@@ -90,52 +102,77 @@ function renderCalendar() {
         info.el.appendChild(circle);
       }
 
-      if (['workout', 'read', 'called'].includes(currentViewMode)) {
-        const value = data[currentViewMode];
-        if (value === 'yes' || value === 'no') {
-          const circle = document.createElement('div');
-          circle.style.position = 'absolute';
-          circle.style.bottom = '5px';
-          circle.style.right = '5px';
-          circle.style.width = '20px';
-          circle.style.height = '20px';
-          circle.style.borderRadius = '50%';
-          circle.style.backgroundColor = value === 'yes' ? 'green' : '#B22222';
-          circle.style.display = 'flex';
-          circle.style.alignItems = 'center';
-          circle.style.justifyContent = 'center';
-
-          const img = document.createElement('img');
-          img.src = value === 'yes' ? '/journal/icons/check.svg' : '/journal/icons/close.svg';
-          img.alt = value;
-          img.style.width = '12px';
-          img.style.height = '12px';
-
-          circle.appendChild(img);
-          info.el.style.position = 'relative';
-          info.el.appendChild(circle);
+      if (['habit1', 'habit2', 'habit3'].includes(currentViewMode)) {
+        let value = '';
+        let habitLabelInEntry = '';
+      
+        if (data.habits?.[currentViewMode]) {
+          value = data.habits[currentViewMode].value;
+          habitLabelInEntry = data.habits[currentViewMode].label || '';
+        } else {
+          const fallbackKeys = { habit1: 'workout', habit2: 'read', habit3: 'called' };
+          value = data[fallbackKeys[currentViewMode]] || '';
+          habitLabelInEntry = ''; // No label saved in old data
+        }
+      
+        const originalLabels = {
+          habit1: 'Worked out?',
+          habit2: 'Read a book?',
+          habit3: 'Called your parents?'
+        };
+      
+        // Only show mark if:
+        // 1) label exists and matches current label OR
+        // 2) no label saved but current label is the original default label
+        const labelMatches =
+          habitLabelInEntry === habitLabels[currentViewMode] ||
+          (habitLabelInEntry === '' && habitLabels[currentViewMode] === originalLabels[currentViewMode]);
+      
+        if (labelMatches) {
+          if (value === 'yes' || value === 'no') {
+            const circle = document.createElement('div');
+            circle.style.position = 'absolute';
+            circle.style.bottom = '5px';
+            circle.style.right = '5px';
+            circle.style.width = '20px';
+            circle.style.height = '20px';
+            circle.style.borderRadius = '50%';
+            circle.style.backgroundColor = value === 'yes' ? 'green' : '#B22222';
+            circle.style.display = 'flex';
+            circle.style.alignItems = 'center';
+            circle.style.justifyContent = 'center';
+      
+            const img = document.createElement('img');
+            img.src = value === 'yes' ? '/journal/icons/check.svg' : '/journal/icons/close.svg';
+            img.alt = value;
+            img.style.width = '12px';
+            img.style.height = '12px';
+      
+            circle.appendChild(img);
+            info.el.style.position = 'relative';
+            info.el.appendChild(circle);
+          }
         }
       }
+      
+      
+      
     },
     datesSet: () => {
       if (window.innerWidth > 400) return;
-    
+
       const toolbar = document.querySelector('.fc-header-toolbar');
       if (!toolbar) return;
-    
+
       const chunks = Array.from(toolbar.querySelectorAll('.fc-toolbar-chunk'));
       if (chunks.length < 3) return;
-    
-      const [chunk1, chunk2, chunk3] = chunks; // 1=filter, 2=title, 3=controls
-    
-      // Remove any existing wrapper (cleanup)
+
+      const [chunk1, chunk2, chunk3] = chunks;
+
       const oldWrapper = toolbar.querySelector('.fc-toolbar-chunk-row');
       if (oldWrapper) oldWrapper.remove();
-    
-      // Remove the original chunks
       chunks.forEach(c => c.remove());
-    
-      // Build our new row wrapper for filter + controls
+
       const wrapper = document.createElement('div');
       wrapper.classList.add('fc-toolbar-chunk-row');
       wrapper.style.display = 'flex';
@@ -145,13 +182,10 @@ function renderCalendar() {
       wrapper.style.marginBottom = '0.5rem';
       wrapper.appendChild(chunk1);
       wrapper.appendChild(chunk3);
-    
-      // Re-append in the desired order
-      toolbar.appendChild(chunk2);   // Month title
-      toolbar.appendChild(wrapper);  // Filter + controls together
+
+      toolbar.appendChild(chunk2);
+      toolbar.appendChild(wrapper);
     }
-    
-    
   });
 
   calendar.render();
@@ -168,17 +202,20 @@ function renderCalendar() {
 
     const select = document.createElement('select');
     select.className = 'inline-dropdown';
+
     select.innerHTML = `
       <option value="image" ${currentViewMode === 'image' ? 'selected' : ''}>Image</option>
       <option value="mood" ${currentViewMode === 'mood' ? 'selected' : ''}>Mood</option>
-      <option value="workout" ${currentViewMode === 'workout' ? 'selected' : ''}>Worked out</option>
-      <option value="read" ${currentViewMode === 'read' ? 'selected' : ''}>Read a book</option>
-      <option value="called" ${currentViewMode === 'called' ? 'selected' : ''}>Called parents</option>
+      <option value="habit1" ${currentViewMode === 'habit1' ? 'selected' : ''}>${habitLabels.habit1}</option>
+      <option value="habit2" ${currentViewMode === 'habit2' ? 'selected' : ''}>${habitLabels.habit2}</option>
+      <option value="habit3" ${currentViewMode === 'habit3' ? 'selected' : ''}>${
+        habitLabels.habit3 === 'Called your parents?' ? 'Called parents?' : habitLabels.habit3
+      }</option>  
     `;
 
     select.addEventListener('change', e => {
       currentViewMode = e.target.value;
-      renderCalendar(); // Refresh view
+      renderCalendar(); // Refresh view with new mode
     });
 
     dropdownContainer.appendChild(select);
@@ -192,6 +229,7 @@ function renderCalendar() {
 const db = window.firebaseApp.db;
 const storage = window.firebaseApp.storage;
 
+
 async function saveJournalEntry(date) {
   const user = auth.currentUser;
   if (!user) return alert("Not logged in");
@@ -199,9 +237,6 @@ async function saveJournalEntry(date) {
   const mood = document.getElementById('selected-mood').value;
   const description = document.getElementById('description').value;
   const imageFile = document.getElementById('image-upload').files[0];
-  const workout = document.getElementById('selected-workout').value;
-  const read = document.getElementById('selected-read').value;
-  const called = document.getElementById('selected-called').value;
 
   const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
   let imageUrl = "";
@@ -212,6 +247,7 @@ async function saveJournalEntry(date) {
     imageUrl = existingSnap.data().imageUrl || "";
   }
 
+  // Handle image upload
   if (imageFile) {
     try {
       const compressedFile = await imageCompression(imageFile, {
@@ -222,7 +258,7 @@ async function saveJournalEntry(date) {
 
       const storageRef = ref(storage, `journalImages/${user.uid}_${date}`);
       await uploadBytes(storageRef, compressedFile);
-      imageUrl = await getDownloadURL(storageRef); // Only updates if a new image was uploaded
+      imageUrl = await getDownloadURL(storageRef);
     } catch (error) {
       console.error("Image compression/upload failed:", error);
       alert("Image upload failed.");
@@ -230,19 +266,29 @@ async function saveJournalEntry(date) {
     }
   }
 
+  // Build habits object
+  const habitKeys = ['habit1', 'habit2', 'habit3'];
+  const habits = {};
+
+  habitKeys.forEach(habitId => {
+    const labelEl = document.querySelector(`.habit-label[data-habit="${habitId}"]`);
+    const hiddenInput = document.getElementById(`selected-${habitId}`);
+    const label = labelEl?.textContent?.trim() || '';
+    const value = hiddenInput?.value || '';
+    habits[habitId] = { label, value };
+  });
+
+  // Save to Firestore
   await setDoc(entryRef, {
     userId: user.uid,
     date,
     mood,
-    workout,
-    read,
-    called,
     description,
     imageUrl,
+    habits,
     timestamp: new Date()
   });
 }
-
 
 
 async function loadJournalEntry(date) {
@@ -251,13 +297,24 @@ async function loadJournalEntry(date) {
 
   const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
   const docSnap = await getDoc(entryRef);
-
   const imgPreview = document.getElementById('image-preview');
+
+  const habitKeys = ['habit1', 'habit2', 'habit3'];
+  const fallbackKeys = {
+    habit1: 'workout',
+    habit2: 'read',
+    habit3: 'called'
+  };
+  const defaultLabels = {
+    habit1: 'Worked out?',
+    habit2: 'Read a book?',
+    habit3: 'Called your parents?'
+  };
 
   if (docSnap.exists()) {
     const data = docSnap.data();
-  
-    // Mood UI...
+
+    // Mood selection
     moodButtons.forEach(btn => {
       if (btn.dataset.mood === data.mood) {
         btn.classList.add('selected');
@@ -266,27 +323,34 @@ async function loadJournalEntry(date) {
         btn.classList.remove('selected');
       }
     });
-  
-    // Habit buttons (yes/no)
-    const habits = [
-      { key: 'workout', buttons: document.querySelectorAll('#workout-select .habit-button'), input: 'selected-workout' },
-      { key: 'read', buttons: document.querySelectorAll('#read-select .habit-button'), input: 'selected-read' },
-      { key: 'called', buttons: document.querySelectorAll('#called-select .habit-button'), input: 'selected-called' }
-    ];
-  
-    habits.forEach(({ key, buttons, input }) => {
+
+    // Load from journal entry (old or new structure)
+    habitKeys.forEach(habitId => {
+      const labelEl = document.querySelector(`.habit-label[data-habit="${habitId}"]`);
+      const buttons = document.querySelectorAll(`#${habitId}-select .habit-button`);
+      const hiddenInput = document.getElementById(`selected-${habitId}`);
+
+      const fallbackValue = data[fallbackKeys[habitId]] || '';
+      const habitData = data.habits?.[habitId] || {
+        label: defaultLabels[habitId],
+        value: fallbackValue
+      };
+
+      if (labelEl) labelEl.textContent = habitData.label;
+
       buttons.forEach(btn => {
-        if (data[key] === btn.dataset.value) {
+        if (btn.dataset.value === habitData.value) {
           btn.classList.add('selected');
-          document.getElementById(input).value = btn.dataset.value;
+          hiddenInput.value = habitData.value;
         } else {
           btn.classList.remove('selected');
         }
       });
-    });  
+    });
 
-    document.getElementById('description').value = data.description;
+    document.getElementById('description').value = data.description || '';
 
+    // Image
     if (data.imageUrl) {
       imgPreview.src = data.imageUrl;
       imgPreview.style.display = 'block';
@@ -301,22 +365,29 @@ async function loadJournalEntry(date) {
 
     document.getElementById('clear-entry').style.display = 'inline';
   } else {
-    // Clear UI states if no data exists
+    // === No entry yet — use latest habit labels ===
+
+    const habitLabelsRef = doc(db, "habitLabels", user.uid);
+    const labelSnap = await getDoc(habitLabelsRef);
+    const latestLabels = labelSnap.exists() ? labelSnap.data() : defaultLabels;
+
+    // Mood
     moodButtons.forEach(btn => btn.classList.remove('selected'));
     selectedMoodInput.value = '';
 
-    const habits = [
-      { input: 'selected-workout', buttons: document.querySelectorAll('#workout-select .habit-button') },
-      { input: 'selected-read', buttons: document.querySelectorAll('#read-select .habit-button') },
-      { input: 'selected-called', buttons: document.querySelectorAll('#called-select .habit-button') }
-    ];
-    
-    habits.forEach(({ buttons, input }) => {
-      buttons.forEach(btn => btn.classList.remove('selected'));
-      document.getElementById(input).value = '';
-    });
-    
+    // Habits
+    habitKeys.forEach(habitId => {
+      const labelEl = document.querySelector(`.habit-label[data-habit="${habitId}"]`);
+      const buttons = document.querySelectorAll(`#${habitId}-select .habit-button`);
+      const hiddenInput = document.getElementById(`selected-${habitId}`);
 
+      if (labelEl) labelEl.textContent = latestLabels[habitId] || defaultLabels[habitId];
+
+      buttons.forEach(btn => btn.classList.remove('selected'));
+      if (hiddenInput) hiddenInput.value = '';
+    });
+
+    // Description & image
     document.getElementById('description').value = '';
     imgPreview.src = '';
     imgPreview.style.display = 'none';
@@ -325,7 +396,6 @@ async function loadJournalEntry(date) {
     document.getElementById('clear-entry').style.display = 'none';
   }
 }
-
 
 
 async function clearJournalEntry(date) {
@@ -591,16 +661,18 @@ document.getElementById('next-date').addEventListener('click', () => {
 });
 
 // yes / no 
-['workout', 'read', 'called'].forEach(id => {
-  const buttons = document.querySelectorAll(`#${id}-select .habit-button`);
-  const hiddenInput = document.getElementById(`selected-${id}`);
+['habit1', 'habit2', 'habit3'].forEach(habitId => {
+  const buttons = document.querySelectorAll(`#${habitId}-select .habit-button`);
+  const hiddenInput = document.getElementById(`selected-${habitId}`);
+
   buttons.forEach(button => {
     button.addEventListener('click', () => {
       buttons.forEach(btn => btn.classList.remove('selected'));
       button.classList.add('selected');
-      hiddenInput.value = button.dataset.value || button.dataset.workout;
+      hiddenInput.value = button.dataset.value;
     });
   });
 });
+
 
 

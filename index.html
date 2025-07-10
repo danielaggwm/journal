@@ -68,6 +68,7 @@
 
 
 </head>
+
 <body>
     <!-- LOGIN MODAL -->
     <div id="auth-modal" class="modal">
@@ -91,7 +92,7 @@
         <nav class="menu-items">
           <a href="#">ABOUT</a>
           <a href="#">TRENDS</a>
-          <a href="#">CUSTOMIZE</a>
+          <a href="customize.html">CUSTOMIZE</a>
           <a href="#" id="logout">LOGOUT</a>
         </nav>
       </div>
@@ -140,11 +141,10 @@
 
         <input type="hidden" id="selected-mood" name="mood" />
 
-
-        <!-- workout -->
-        <div class="habit-container">
-          <label class="habit-label">Worked out?</label>
-          <div class="habit-row" id="workout-select">
+        <!-- HABIT 1 -->
+        <div class="habit-container" id="habit1-container">
+          <label class="habit-label" data-habit="habit1">Worked out?</label>
+          <div class="habit-row" id="habit1-select">
             <button class="habit-button" data-value="no">
               <img src="/journal/icons/close.svg" alt="No" />
             </button>
@@ -152,13 +152,13 @@
               <img src="/journal/icons/check.svg" alt="Yes" />
             </button>
           </div>
+          <input type="hidden" id="selected-habit1" />
         </div>
-        <input type="hidden" id="selected-workout" />
 
-        <!-- read -->
-        <div class="habit-container">
-          <label class="habit-label">Read a book?</label>
-          <div class="habit-row" id="read-select">
+        <!-- HABIT 2 -->
+        <div class="habit-container" id="habit2-container">
+          <label class="habit-label" data-habit="habit2">Read a book?</label>
+          <div class="habit-row" id="habit2-select">
             <button class="habit-button" data-value="no">
               <img src="/journal/icons/close.svg" alt="No" />
             </button>
@@ -166,13 +166,13 @@
               <img src="/journal/icons/check.svg" alt="Yes" />
             </button>
           </div>
+          <input type="hidden" id="selected-habit2" />
         </div>
-        <input type="hidden" id="selected-read" />
 
-        <!-- called -->
-        <div class="habit-container">
-          <label class="habit-label">Called your parents?</label>
-          <div class="habit-row" id="called-select">
+        <!-- HABIT 3 -->
+        <div class="habit-container" id="habit3-container">
+          <label class="habit-label" data-habit="habit3">Called your parents?</label>
+          <div class="habit-row" id="habit3-select">
             <button class="habit-button" data-value="no">
               <img src="/journal/icons/close.svg" alt="No" />
             </button>
@@ -180,7 +180,14 @@
               <img src="/journal/icons/check.svg" alt="Yes" />
             </button>
           </div>
+          <input type="hidden" id="selected-habit3" />
         </div>
+
+
+
+
+
+        
         <input type="hidden" id="selected-called" />
 
       
