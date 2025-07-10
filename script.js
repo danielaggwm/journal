@@ -615,7 +615,6 @@ document.getElementById('clear-entry').addEventListener('click', async () => {
 
 
 const themeMeta = document.querySelector('meta[name="theme-color"]');
-// const viewModeSelector = document.getElementById('view-mode-selector');
 const authModal = document.getElementById('auth-modal');
 const journalModal = document.getElementById('journal-modal');
 
