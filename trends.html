@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trends</title>
+    <link rel="stylesheet" href="base.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/svg" href="icon.svg">
+
+    <meta name="theme-color" content="#f4eefe" id="theme-color-meta">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import {
+          getAuth,
+          onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import {
+          getFirestore,
+          collection,
+          getDocs
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+      
+        const firebaseConfig = {
+          apiKey: "AIzaSyBMOeKuVRPshQvryw8wux5Q9xDuUZ9Nlms",
+          authDomain: "journal-danielaggwm.firebaseapp.com",
+          projectId: "journal-danielaggwm",
+          storageBucket: "journal-danielaggwm",
+          messagingSenderId: "711305745141",
+          appId: "1:711305745141:web:cfd67957ec5c920035ebbc",
+          measurementId: "G-Q5SQGEPBF2"
+        };
+      
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+      
+        const moodColors = {
+          good: "#4caf50",
+          sad: "#2196f3",
+          angry: "#f44336",
+          excited: "#ff9800"
+        };
+      
+        let currentView = "weekly";
+        let currentStartDate = getStartOfWeek(new Date());
+        let allEntries = [];
+      
+        onAuthStateChanged(auth, async user => {
+          if (!user) return;
+      
+          const entriesRef = collection(db, "journalEntries");
+          const snap = await getDocs(entriesRef);
+      
+          allEntries = [];
+      
+          snap.forEach(doc => {
+            const [entryUid] = doc.id.split("_");
+            if (entryUid !== user.uid) return;
+      
+            const data = doc.data();
+            const dateStr = doc.id.split("_")[1];
+            const [year, month, day] = dateStr.split("-").map(Number);
+            const date = new Date(year, month - 1, day);
+            date.setHours(0, 0, 0, 0);
+
+      
+            allEntries.push({ date, mood: data.mood });
+          });
+      
+          renderForCurrentView();
+        });
+      
+        // ✅ Updated to make weeks start on Monday
+        function getStartOfWeek(date) {
+          const d = new Date(date);
+          const day = d.getDay(); // 0 (Sun) to 6 (Sat)
+          const diff = (day + 6) % 7; // Shift so Monday is 0
+          d.setDate(d.getDate() - diff);
+          d.setHours(0, 0, 0, 0);
+          return d;
+        }
+      
+        function getStartOfMonth(date) {
+          const d = new Date(date);
+          d.setDate(1);
+          d.setHours(0, 0, 0, 0);
+          return d;
+        }
+      
+        function updateRangeLabel(start, end) {
+          const format = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          document.getElementById('current-range').textContent = `${format(start)} – ${format(end)}`;
+        }
+      
+        function filterEntriesByView(entries, view, refDate) {
+          let start = new Date(refDate);
+          let end = new Date(refDate);
+      
+          if (view === 'weekly') {
+            start = getStartOfWeek(refDate);
+            end = new Date(start);
+            end.setDate(start.getDate() + 6);
+          } else if (view === 'monthly') {
+            start = getStartOfMonth(refDate);
+            end = new Date(start);
+            end.setMonth(start.getMonth() + 1);
+            end.setDate(0);
+          } else {
+            document.getElementById('current-range').textContent = "All Time";
+            return entries;
+          }
+      
+          updateRangeLabel(start, end);
+      
+          return entries.filter(e => {
+            const day = new Date(e.date);
+            day.setHours(0, 0, 0, 0);
+            return day >= start && day <= end;
+          });
+        }
+      
+        function drawMoodBarChart(data) {
+            const container = document.getElementById('mood-bar-chart');
+            container.innerHTML = "";
+
+            const margin = { top: 40, right: 25, bottom: 60, left: 25 };
+            const baseWidth = window.innerWidth < 400 ? 350 : 400;
+            const width = baseWidth - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            const svg = d3.select("#mood-bar-chart")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .style("font-family", "'Poppins', sans-serif")
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const moods = Object.keys(data);
+            const counts = Object.values(data);
+
+            const x = d3.scaleBand()
+                .domain(moods)
+                .range([0, width])
+                .padding(0.4);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(counts) || 1]) 
+                .nice()
+                .range([height, 0]);
+
+            // Bars with rounded tops
+            svg.selectAll("rect")
+                .data(moods)
+                .enter()
+                .append("rect")
+                .attr("x", d => x(d))
+                .attr("y", d => y(data[d]))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(data[d]))
+                .attr("fill", d => moodColors[d])
+                .attr("rx", 6)
+                .attr("ry", 6);
+
+            // Mood count labels above bars
+            svg.selectAll("text.label")
+                .data(moods)
+                .enter()
+                .append("text")
+                .filter(d => data[d] > 0) // only show if count > 0
+                .attr("class", "label")
+                .attr("x", d => x(d) + x.bandwidth() / 2)
+                .attr("y", d => y(data[d]) - 6)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#3d1b53")
+                .attr("font-size", "14px")
+                .text(d => data[d]);
+
+            const iconPaths = {
+            good: "/journal/icons/good.svg",
+            sad: "/journal/icons/sad.svg",
+            angry: "/journal/icons/angry.svg",
+            excited: "/journal/icons/excited.svg"
+            };
+
+            // Custom mood icon + label below each bar
+            moods.forEach(mood => {
+            const xCenter = x(mood) + x.bandwidth() / 2;
+
+            // Add SVG icon
+            svg.append("image")
+                .attr("href", iconPaths[mood])
+                .attr("x", xCenter - 12)
+                .attr("y", height + 4)
+                .attr("width", 24)
+                .attr("height", 24);
+
+            // Add text label below icon
+            svg.append("text")
+                .attr("x", xCenter)
+                .attr("y", height + 40)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "12px")
+                .attr("fill", "#3d1b53")
+                .text(mood.toUpperCase());
+            });
+        }
+
+      
+        function renderForCurrentView() {
+          const filtered = filterEntriesByView(allEntries, currentView, currentStartDate);
+      
+          const moodCounts = {
+            good: 0,
+            sad: 0,
+            angry: 0,
+            excited: 0
+          };
+      
+          filtered.forEach(entry => {
+            if (entry.mood && moodCounts.hasOwnProperty(entry.mood)) {
+              moodCounts[entry.mood]++;
+            }
+          });
+      
+          drawMoodBarChart(moodCounts);
+        }
+      
+        document.getElementById('weekly').addEventListener('click', () => {
+          currentView = 'weekly';
+          currentStartDate = getStartOfWeek(new Date());
+          renderForCurrentView();
+        });
+      
+        document.getElementById('monthly').addEventListener('click', () => {
+          currentView = 'monthly';
+          currentStartDate = getStartOfMonth(new Date());
+          renderForCurrentView();
+        });
+      
+        document.getElementById('all').addEventListener('click', () => {
+          currentView = 'all';
+          document.getElementById('current-range').textContent = "All Time";
+          renderForCurrentView();
+        });
+      
+        document.getElementById('prev-date').addEventListener('click', () => {
+          if (currentView === 'weekly') {
+            currentStartDate.setDate(currentStartDate.getDate() - 7);
+          } else if (currentView === 'monthly') {
+            currentStartDate.setMonth(currentStartDate.getMonth() - 1);
+          }
+          renderForCurrentView();
+        });
+      
+        document.getElementById('next-date').addEventListener('click', () => {
+          if (currentView === 'weekly') {
+            currentStartDate.setDate(currentStartDate.getDate() + 7);
+          } else if (currentView === 'monthly') {
+            currentStartDate.setMonth(currentStartDate.getMonth() + 1);
+          }
+          renderForCurrentView();
+        });
+
+        const toggleButtons = document.querySelectorAll('.toggle-buttons button');
+
+        toggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            toggleButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        });
+        });
+
+        // —————— Elements ——————
+        const menuButton = document.getElementById('menu-toggle');
+        const menuWrapper = document.querySelector('.menu-wrapper');
+        const menuLinks = document.querySelectorAll('.menu-items a');
+    
+        // —————— MENU: open/close toggle ——————
+        menuButton.addEventListener('click', () => {
+        menuButton.classList.toggle('open');
+        menuWrapper.classList.toggle('open');
+        });
+    
+        // —————— MENU: collapse on any link click ——————
+        menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            menuButton.classList.remove('open');
+            menuWrapper.classList.remove('open');
+        });
+        });
+    
+        // —————— LOGOUT: Handle logout ——————
+        document.getElementById('logout').addEventListener('click', async (e) => {
+        e.preventDefault();
+        await auth.signOut();
+        window.location.href = 'index.html';
+        });
+    </script>
+</head>
+
+<body>
+    <div class="header-container">
+        <div class="menu-wrapper">
+            <button id="menu-toggle" class="menu-button" aria-label="Toggle menu">
+            <span class="menu-line line1"></span>
+            <span class="menu-line line2"></span>
+            </button>
+            <nav class="menu-items">
+            <a href="index.html">HOME</a>
+            <a href="#">ABOUT</a>
+            <a href="customize.html">CUSTOMIZE</a>
+            <a href="#" id="logout">LOGOUT</a>
+            </nav>
+        </div>
+    </div>
+    <div class="controls-container">
+        <div class="toggle-buttons">
+          <button id="weekly" class="active">WEEKLY</button>
+          <button id="monthly">MONTHLY</button>
+          <button id="all">ALL</button>
+        </div>
+      
+        <div class="nav-arrow">
+          <button id="prev-date">
+            <img src="icons/left-arrow.svg" alt="Previous Day" />
+          </button>
+          <span id="current-range"></span>
+          <button id="next-date">
+            <img src="icons/right-arrow.svg" alt="Next Day" />
+          </button>
+        </div>
+    </div>
+      
+      <!-- Plots -->
+    <div id="mood-bar-chart"></div>
+</body>
+</html>
