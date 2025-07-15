@@ -967,10 +967,16 @@ body {
   border: 1px dashed var(--dark-purple);
 }
 
+#chart-wrapper svg,
 #mood-bar-chart svg {
+  display: none;
+  height: none;
+}
+
+#chart-wrapper.chart-visible svg {
   margin: 20px auto;
   display: block;
-  background-color: var(--beige);
+  background-color: var(--beige) !important;
   border: 1px solid var(--dark-purple);
   border-radius: 20px;
 }

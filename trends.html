@@ -132,6 +132,7 @@
       
         function drawMoodBarChart(data) {
             const container = document.getElementById('mood-bar-chart');
+            const wrapper = document.getElementById('chart-wrapper');
             container.innerHTML = "";
 
             const margin = { top: 40, right: 25, bottom: 60, left: 25 };
@@ -139,7 +140,7 @@
             const width = baseWidth - margin.left - margin.right;
             const height = 300 - margin.top - margin.bottom;
 
-            const svg = d3.select("#mood-bar-chart")
+            const svg = d3.select(container)
                 .append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
@@ -160,7 +161,6 @@
                 .nice()
                 .range([height, 0]);
 
-            // Bars with rounded tops
             svg.selectAll("rect")
                 .data(moods)
                 .enter()
@@ -173,12 +173,11 @@
                 .attr("rx", 6)
                 .attr("ry", 6);
 
-            // Mood count labels above bars
             svg.selectAll("text.label")
                 .data(moods)
                 .enter()
                 .append("text")
-                .filter(d => data[d] > 0) // only show if count > 0
+                .filter(d => data[d] > 0)
                 .attr("class", "label")
                 .attr("x", d => x(d) + x.bandwidth() / 2)
                 .attr("y", d => y(data[d]) - 6)
@@ -188,33 +187,35 @@
                 .text(d => data[d]);
 
             const iconPaths = {
-            good: "/journal/icons/good.svg",
-            sad: "/journal/icons/sad.svg",
-            angry: "/journal/icons/angry.svg",
-            excited: "/journal/icons/excited.svg"
+                good: "/journal/icons/good.svg",
+                sad: "/journal/icons/sad.svg",
+                angry: "/journal/icons/angry.svg",
+                excited: "/journal/icons/excited.svg"
             };
 
-            // Custom mood icon + label below each bar
             moods.forEach(mood => {
-            const xCenter = x(mood) + x.bandwidth() / 2;
+                const xCenter = x(mood) + x.bandwidth() / 2;
 
-            // Add SVG icon
-            svg.append("image")
-                .attr("href", iconPaths[mood])
-                .attr("x", xCenter - 12)
-                .attr("y", height + 4)
-                .attr("width", 24)
-                .attr("height", 24);
+                svg.append("image")
+                    .attr("href", iconPaths[mood])
+                    .attr("x", xCenter - 12)
+                    .attr("y", height + 4)
+                    .attr("width", 24)
+                    .attr("height", 24);
 
-            // Add text label below icon
-            svg.append("text")
-                .attr("x", xCenter)
-                .attr("y", height + 40)
-                .attr("text-anchor", "middle")
-                .attr("font-size", "12px")
-                .attr("fill", "#3d1b53")
-                .text(mood.toUpperCase());
+                svg.append("text")
+                    .attr("x", xCenter)
+                    .attr("y", height + 40)
+                    .attr("text-anchor", "middle")
+                    .attr("font-size", "12px")
+                    .attr("fill", "#3d1b53")
+                    .text(mood.toUpperCase());
             });
+
+            //  Now that everything is ready, reveal the container + add the class that adds styles
+            wrapper.classList.add("chart-visible");
+            wrapper.style.display = "block";
+            container.style.display = "block";
         }
 
       
@@ -557,7 +558,7 @@
           <button id="prev-date">
             <img src="icons/left-arrow.svg" alt="Previous Day" />
           </button>
-          <span id="current-range"></span>
+          <span id="current-range">THIS WEEK</span>
           <button id="next-date">
             <img src="icons/right-arrow.svg" alt="Next Day" />
           </button>
@@ -565,7 +566,10 @@
     </div>
       
     <!-- Plots -->
-    <div id="mood-bar-chart"></div>
+    <div id="chart-wrapper" style="display: none;">
+        <div id="mood-bar-chart"></div>
+    </div>
+
     <div id="streak-count"></div>
 </body>
 </html>
