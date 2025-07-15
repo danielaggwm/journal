@@ -458,6 +458,28 @@
             let cursor = new Date();
             cursor.setHours(0, 0, 0, 0);
 
+            const todayTs = cursor.getTime();
+            const entryToday = entriesByDate.get(todayTs);
+
+            // If there's no valid entry today, move the cursor to yesterday
+            const isValidToday = (() => {
+            if (!entryToday) return false;
+            return selectedHabits.every(habitId => {
+                const habitEntry = entryToday.habits?.[habitId];
+                if (!habitEntry) return false;
+
+                const currentLabel = currentLabels[habitId];
+                const entryLabel = habitEntry.label || habitId;
+                if (currentLabel && entryLabel !== currentLabel) return false;
+
+                return habitEntry.value === "yes";
+            });
+            })();
+
+            if (!isValidToday) {
+            cursor.setDate(cursor.getDate() - 1);
+            }
+
             while (true) {
                 const ts = cursor.getTime();
                 const entry = entriesByDate.get(ts);
