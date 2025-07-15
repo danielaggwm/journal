@@ -739,7 +739,7 @@ body {
 
   .menu-wrapper.open {
     width: 88vw !important;
-    height: 92vh !important;   
+    height: 90vh !important;   
     border-radius: 10px;   
     align-items: normal !important;
   }
@@ -863,6 +863,7 @@ body {
 
   .habit-customization h1 {
     margin-top: 2rem;
+    line-height: 1.8rem;
   }
 
   #save-button {
@@ -946,8 +947,8 @@ body {
 }
 
 .toggle-buttons button {
-  background-color: transparent;
-  border: 1.5px solid var(--dark-purple);
+  background-color: #fdeae8ed;
+  border: 1px solid var(--dark-purple);
   color: var(--dark-purple);
   font-family: 'Poppins', sans-serif;
   font-size: 0.9rem;
@@ -963,18 +964,63 @@ body {
 
 .toggle-buttons button.active {
   background-color: var(--medium-orange);
-  border: 2px dashed var(--dark-purple);
+  border: 1px dashed var(--dark-purple);
 }
 
 #mood-bar-chart svg {
   margin: 20px auto;
   display: block;
   background-color: var(--beige);
-  border: 1.5px solid var(--dark-purple);
+  border: 1px solid var(--dark-purple);
   border-radius: 20px;
 }
 
 #current-range {
   color: var(--dark-purple);
   text-transform: uppercase;
+}
+
+#streak-count {
+  margin: 20px auto;
+  width: 400px;
+  padding-bottom: 20px;
+  display: block;
+  background-color: var(--beige);
+  border: 1px solid var(--dark-purple);
+  border-radius: 20px;
+}
+
+@media (max-width: 400px) {
+  #streak-count {
+    width: 350px;
+  }
+}
+
+/* streak counter */
+#streak-count select {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  padding: 8px 20px !important;
+  width: 230px;
+  border: none;
+  border-radius: 30px;
+  background-color: var(--light-orange); 
+  color: var(--dark-purple);            
+  text-transform: uppercase;
+  appearance: none;
+  background-image: url('/journal/icons/down-arrow.svg');
+  background-repeat: no-repeat;
+  background-position: calc(100% - 0.6rem) center;
+  background-size: 18px;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, background-color 0.3s ease;
+}
+
+#streak-count select:focus {
+  outline: none;
+  border-color: #3d1b53;
+}
+
+#streak-count select:hover {
+  background-color: var(--medium-orange); 
 }

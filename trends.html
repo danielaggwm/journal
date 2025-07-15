@@ -15,6 +15,8 @@
     <meta name="theme-color" content="#f4eefe" id="theme-color-meta">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module">
+        let selectedHabitId = "habit1"; 
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import {
           getAuth,
@@ -23,7 +25,9 @@
         import {
           getFirestore,
           collection,
-          getDocs
+          getDocs,
+          doc,
+          getDoc,
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
       
         const firebaseConfig = {
@@ -70,10 +74,11 @@
             date.setHours(0, 0, 0, 0);
 
       
-            allEntries.push({ date, mood: data.mood });
+            allEntries.push({ date, mood: data.mood, habits: data.habits });
           });
       
-          renderForCurrentView();
+          await drawStreakCounter(); // ✅ draw UI before trying to update values
+          await renderForCurrentView();
         });
       
         // ✅ Updated to make weeks start on Monday
@@ -214,23 +219,40 @@
 
       
         function renderForCurrentView() {
-          const filtered = filterEntriesByView(allEntries, currentView, currentStartDate);
-      
-          const moodCounts = {
-            good: 0,
-            sad: 0,
-            angry: 0,
-            excited: 0
-          };
-      
-          filtered.forEach(entry => {
-            if (entry.mood && moodCounts.hasOwnProperty(entry.mood)) {
-              moodCounts[entry.mood]++;
-            }
-          });
-      
-          drawMoodBarChart(moodCounts);
+            const filtered = filterEntriesByView(allEntries, currentView, currentStartDate);
+
+            const moodCounts = {
+                good: 0,
+                sad: 0,
+                angry: 0,
+                excited: 0
+            };
+
+            filtered.forEach(entry => {
+                if (entry.mood && moodCounts.hasOwnProperty(entry.mood)) {
+                moodCounts[entry.mood]++;
+                }
+            });
+
+            drawMoodBarChart(moodCounts);
+
+            // ✅ Add this line to refresh the streak section
+            const user = auth.currentUser;
+            if (!user) return;
+
+            getDoc(doc(db, "habitLabels", user.uid)).then(docSnap => {
+                const habitLabels = docSnap.exists()
+                ? docSnap.data()
+                : {
+                    habit1: "Worked out?",
+                    habit2: "Read a book?",
+                    habit3: "Called your parents?"
+                    };
+
+                updateStreakData(habitLabels);
+            });
         }
+
       
         document.getElementById('weekly').addEventListener('click', () => {
           currentView = 'weekly';
@@ -302,6 +324,188 @@
         await auth.signOut();
         window.location.href = 'index.html';
         });
+
+        async function drawStreakCounter() {
+            const container = document.getElementById("streak-count");
+
+            const wrapper = document.createElement("div");
+            wrapper.style.display = "flex";
+            wrapper.style.flexDirection = "column";
+            wrapper.style.alignItems = "center";
+            wrapper.style.marginTop = "2rem";
+            wrapper.style.fontFamily = "'Poppins', sans-serif";
+            wrapper.style.color =  "#3d1b53";
+
+            const selector = document.createElement("select");
+            selector.style.padding = "8px";
+            selector.style.marginBottom = "1rem";
+
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const habitDocRef = doc(db, "habitLabels", user.uid);
+            const docSnap = await getDoc(habitDocRef);
+            const habitLabels = docSnap.exists()
+                ? docSnap.data()
+                : {
+                    habit1: "Worked out?",
+                    habit2: "Read a book?",
+                    habit3: "Called your parents?"
+                };
+
+            const habitList = [
+                { id: "habit1", label: habitLabels.habit1 },
+                { id: "habit2", label: habitLabels.habit2 },
+                { id: "habit3", label: habitLabels.habit3 },
+                { id: "ALL", label: "All Habits" }
+            ];
+
+            habitList.forEach(opt => {
+                const option = document.createElement("option");
+                option.value = opt.id;
+                option.textContent = opt.label;
+                selector.appendChild(option);
+            });
+
+            selector.value = selectedHabitId;
+
+            selector.addEventListener("change", () => {
+                selectedHabitId = selector.value;
+                updateStreakData(habitLabels);
+            });
+
+            wrapper.appendChild(selector);
+
+            const grid = document.createElement("div");
+            grid.id = "streak-grid"; 
+            grid.style.display = "grid";
+            grid.style.gridTemplateColumns = "repeat(3, 1fr)";
+            grid.style.gap = "2rem";
+            wrapper.appendChild(grid);
+
+            container.innerHTML = "";
+            container.appendChild(wrapper);
+
+            updateStreakData(habitLabels);
+        }
+
+        function updateStreakData(habitLabels) {
+            const selectedHabits =
+                selectedHabitId === "ALL"
+                ? ["habit1", "habit2", "habit3"]
+                : [selectedHabitId];
+
+            const streakData = computeHabitStreaks(allEntries, selectedHabits, habitLabels);
+            const totalEntries = filterEntriesByView(allEntries, currentView, currentStartDate).length;
+
+            const grid = document.getElementById("streak-grid");
+            grid.innerHTML = "";
+
+            const createMetric = (label, value) => {
+                const box = document.createElement("div");
+                box.style.textAlign = "center";
+                const val = document.createElement("div");
+                val.textContent = value;
+                val.style.fontSize = "2rem";
+                val.style.fontWeight = "600";
+                const lbl = document.createElement("div");
+                lbl.innerHTML = label.replace(" ", "<br>");
+                lbl.style.fontSize = "0.9rem";
+                lbl.style.color = "#3d1b53";
+                box.appendChild(val);
+                box.appendChild(lbl);
+                return box;
+            };
+
+            grid.appendChild(createMetric("CURRENT STREAK", streakData.current));
+            grid.appendChild(createMetric("LONGEST STREAK", streakData.longest));
+            grid.appendChild(createMetric("TOTAL ENTRIES", totalEntries));
+        }
+
+
+        function computeHabitStreaks(entries, selectedHabits, currentLabels = {}) {
+            const entriesByDate = new Map();
+            entries.forEach(e => {
+                const d = new Date(e.date);
+                d.setHours(0, 0, 0, 0);
+                entriesByDate.set(d.getTime(), e);
+            });
+
+            const formatDate = d => d.toISOString().split("T")[0];
+
+            const validDateSet = new Set();
+
+            for (const [ts, entry] of entriesByDate.entries()) {
+                const hasAllHabits = selectedHabits.every(habitId => {
+                const habitEntry = entry.habits?.[habitId];
+                if (!habitEntry) return false;
+
+                const currentLabel = currentLabels[habitId];
+                const entryLabel = habitEntry.label || habitId;
+
+                if (currentLabel && entryLabel !== currentLabel) return false;
+
+                return habitEntry.value === "yes";
+                });
+
+                if (hasAllHabits) {
+                validDateSet.add(formatDate(new Date(ts)));
+                }
+            }
+
+            // ——— CURRENT STREAK ———
+            let current = 0;
+            let cursor = new Date();
+            cursor.setHours(0, 0, 0, 0);
+
+            while (true) {
+                const ts = cursor.getTime();
+                const entry = entriesByDate.get(ts);
+
+                if (!entry) break;
+
+                const isValid = selectedHabits.every(habitId => {
+                const habitEntry = entry.habits?.[habitId];
+                if (!habitEntry) return false;
+
+                const currentLabel = currentLabels[habitId];
+                const entryLabel = habitEntry.label || habitId;
+
+                if (currentLabel && entryLabel !== currentLabel) return false;
+
+                return habitEntry.value === "yes";
+                });
+
+                if (!isValid) break;
+
+                current++;
+                cursor.setDate(cursor.getDate() - 1);
+            }
+
+            // ——— LONGEST STREAK ———
+            const validDates = [...validDateSet].map(d => new Date(d)).sort((a, b) => a - b);
+            let longest = 0;
+            let streak = 0;
+            let prev = null;
+
+            for (const date of validDates) {
+                if (!prev) {
+                streak = 1;
+                } else {
+                const diff = (date - prev) / (1000 * 60 * 60 * 24);
+                streak = diff === 1 ? streak + 1 : 1;
+                }
+                longest = Math.max(longest, streak);
+                prev = date;
+            }
+
+            return {
+                current,
+                longest,
+                total: validDateSet.size
+            };
+        }
+
     </script>
 </head>
 
@@ -338,7 +542,8 @@
         </div>
     </div>
       
-      <!-- Plots -->
+    <!-- Plots -->
     <div id="mood-bar-chart"></div>
+    <div id="streak-count"></div>
 </body>
 </html>
