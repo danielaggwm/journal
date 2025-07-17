@@ -1246,4 +1246,8 @@ body {
   .compact-habit .habit-label {
     margin-right: 2rem;
   }
+
+  #lucky-btn .border-svg {
+    transform: translateX(-1px); 
+  }
 }
