@@ -440,8 +440,8 @@ body {
 
 .remove-image-button {
   position: absolute;
-  top: -1px;
-  right: -1px;
+  top: 0px;
+  right: 0px;
   background: var(--light-orange);
   border: none;
   border-radius: 50%;
@@ -456,6 +456,7 @@ body {
   align-items: center;
   padding: 0;
   line-height: 1;
+  box-sizing: border-box;
 }
 
 
