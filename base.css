@@ -338,6 +338,7 @@ body {
   width: 100%;
   max-width: 500px;
   text-align: left;
+  min-height: 695px;
 }
 
 #journal-modal label {
@@ -424,8 +425,8 @@ body {
   position: relative;
   margin: 0 auto;
   width: fit-content;
+  min-height: 130px;
 }
-
 
 #image-preview {
   max-width: 100px;
@@ -1246,8 +1247,12 @@ body {
   .compact-habit .habit-label {
     margin-right: 2rem;
   }
-
+/* 
   #lucky-btn .border-svg {
     transform: translateX(-1px); 
+  } */
+
+  .border-rect {
+    width: 275px; 
   }
 }
