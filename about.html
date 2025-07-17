@@ -1,49 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f4eefe" id="theme-color-meta">
-    <title>Journal Demo</title>
-    <link rel="stylesheet" href="base.css" />
-    <link rel="icon" type="image/svg" href="icon.svg">
-    <script>
-          document.addEventListener('DOMContentLoaded', () => {
-                const menuButton = document.getElementById('menu-toggle');
-                const menuWrapper = document.querySelector('.menu-wrapper');
-                menuButton.addEventListener('click', () => {
-                menuButton.classList.toggle('open');
-                menuWrapper.classList.toggle('open');
-                });
-            });
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4eefe" id="theme-color-meta">
+  <title>About</title>
+  <link rel="stylesheet" href="base.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import {
+          getAuth,
+          onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import {
+          getFirestore,
+          collection,
+          getDocs,
+          doc,
+          getDoc,
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+      
+        const firebaseConfig = {
+          apiKey: "AIzaSyBMOeKuVRPshQvryw8wux5Q9xDuUZ9Nlms",
+          authDomain: "journal-danielaggwm.firebaseapp.com",
+          projectId: "journal-danielaggwm",
+          storageBucket: "journal-danielaggwm",
+          messagingSenderId: "711305745141",
+          appId: "1:711305745141:web:cfd67957ec5c920035ebbc",
+          measurementId: "G-Q5SQGEPBF2"
+        };
+      
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const entriesRef = collection(db, "journalEntries");
+            const snapshot = await getDocs(entriesRef);
+            const userEntries = snapshot.docs.filter(doc => doc.id.startsWith(user.uid + "_"));
+            if (userEntries.length > 0) {
+              const randomDoc = userEntries[Math.floor(Math.random() * userEntries.length)];
+              displayEntry(randomDoc.data());
+            }
+          } else {
+            console.log("User not signed in.");
+          }
+        });
 
 
+        document.addEventListener("DOMContentLoaded", () => {
+        const luckyBtn = document.getElementById("lucky-btn");
+        const randomEntryContainer = document.getElementById("random-entry");
+
+        luckyBtn.addEventListener("click", async () => {
+          const user = auth.currentUser;
+          if (!user) {
+            alert("Please log in to view entries.");
+            return;
+          }
+
+          const entriesRef = collection(db, "journalEntries");
+          const snapshot = await getDocs(entriesRef);
+          const userEntries = snapshot.docs.filter(doc => doc.id.startsWith(user.uid + "_"));
+
+          if (userEntries.length === 0) {
+            randomEntryContainer.innerHTML = "You don’t have any entries yet!";
+            return;
+          }
+
+          const randomDoc = userEntries[Math.floor(Math.random() * userEntries.length)];
+          const data = randomDoc.data();
+
+          const dateStr = randomDoc.id.split("_")[1];
+          const [year, month, day] = dateStr.split("-").map(Number);
+          const date = new Date(year, month - 1, day);
+          date.setHours(0, 0, 0, 0);
+
+          const formattedDate = date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+
+            const iconPaths = {
+              good: "/journal/icons/good.svg",
+              sad: "/journal/icons/sad.svg",
+              angry: "/journal/icons/angry.svg",
+              excited: "/journal/icons/excited.svg"
+            };
+
+            const mood = data.mood?.toLowerCase();
+            const moodIcon = iconPaths[mood] || null;
+
+            const sortedHabitsHtml = Object.entries(data.habits || {})
+              .sort(([keyA], [keyB]) => {
+                const numA = parseInt(keyA.replace(/\D/g, '')) || 0;
+                const numB = parseInt(keyB.replace(/\D/g, '')) || 0;
+                return numA - numB;
+              })
+              .map(([key, val]) => {
+                const isYes = val.value?.toLowerCase() === 'yes';
+                return `
+                  <div class="habit-container compact-habit">
+                    <label class="habit-label" data-habit="${key}">${val.label || key}</label>
+                    <div class="habit-row">
+                      <button class="habit-button ${!isYes ? 'selected' : ''}" disabled>
+                        <img src="/journal/icons/close.svg" alt="No" />
+                      </button>
+                      <button class="habit-button ${isYes ? 'selected' : ''}" disabled>
+                        <img src="/journal/icons/check.svg" alt="Yes" />
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join("");
+
+            randomEntryContainer.innerHTML = `
+            <div class="random-entry-wrapper">
+              <button id="close-modal-about" class="close-button-about">
+                <img src="/journal/icons/close2.svg" alt="Close" />
+              </button>
+              <div class="random-entry-card">
+                <div class="top-content">
+                  <div class="left">
+                    ${data.imageUrl ? `<img src="${data.imageUrl}" alt="entry image" />` : ""}
+                  </div>
+                  <div class="right">
+                    <strong>Date:</strong> ${formattedDate}<br><br>
+                    
+                    <div class="mood-display">
+                      <strong>How do you feel?</strong>
+                      ${
+                        moodIcon
+                          ? `<img src="${moodIcon}" alt="${mood}" />
+                            <div class="mood-label">${mood.toLowerCase()}</div>`
+                          : "Not set"
+                      }
+                    </div>
+                    <br>
+                    ${sortedHabitsHtml}
+                  </div>
+                </div>
+
+                <div class="random-description-block">
+                  <strong>Describe your day...</strong><br>
+                  <div class="random-description">${data.description || "(No description)"}</div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          const closeBtn = document.getElementById("close-modal-about");
+          closeBtn.addEventListener("click", () => {
+            randomEntryContainer.innerHTML = "";
+          });
+        });
+      });
+
+    // —————— Elements ——————
+    const menuButton = document.getElementById('menu-toggle');
+    const menuWrapper = document.querySelector('.menu-wrapper');
+    const menuLinks = document.querySelectorAll('.menu-items a');
+  
+    // —————— MENU: open/close toggle ——————
+    menuButton.addEventListener('click', () => {
+      menuButton.classList.toggle('open');
+      menuWrapper.classList.toggle('open');
+    });
+  
+    // —————— MENU: collapse on any link click ——————
+    menuLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        menuButton.classList.remove('open');
+        menuWrapper.classList.remove('open');
+      });
+    });
+  
+    // —————— LOGOUT: Handle logout ——————
+    document.getElementById('logout').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await auth.signOut();
+      window.location.href = 'index.html';
+    });
+  </script>
+  
 </head>
 <body>
     <div class="header-container">
         <div class="menu-wrapper">
-          <button id="menu-toggle" class="menu-button" aria-label="Toggle menu">
+            <button id="menu-toggle" class="menu-button" aria-label="Toggle menu">
             <span class="menu-line line1"></span>
             <span class="menu-line line2"></span>
-          </button>
-          <nav class="menu-items">
-            <a href="#">ABOUT</a>
-            <a href="#">TRENDS</a>
-            <a href="#">CUSTOMIZE</a>
-            <a href="#">LOGOUT</a>
-          </nav>
+            </button>
+            <nav class="menu-items">
+            <a href="index.html">HOME</a>
+            <a href="trends.html">TRENDS</a>
+            <a href="customize.html">CUSTOMIZE</a>
+            <a href="#" id="logout">LOGOUT</a>
+            </nav>
         </div>
-      
-        <div class="filter-wrap">
-          <select id="view-mode-selector">
-            <option value="image">Image</option>
-            <option value="mood">Mood</option>
-            <option value="workout">Worked out</option>
-            <option value="read">Read a book</option>
-            <option value="called">Called parents</option>
-          </select>
-        </div>
+    </div>
+    <div class="about-description">
+      <h1>What is this?</h1>
+      <div class="about-text">
+        After filling countless Moleskines with scattered thoughts, I realized I never once flipped back to read them. 
+        Most my memories written, closed, and left to morph.  
+        <br><br>
+        A friend once asked me, “If you could know one statistic about your life, what would it be?” 
+        <br><br>
+        That question stuck with me. This site is my way of answering it — a personal dataset, a mood log, a trail of ordinary days. 
+        This is my record of being alive.
+      </div>
+  
+      <button id="lucky-btn">
+        I'm Feeling Lucky
+        <svg class="border-svg" viewBox="0 0 280 60" >
+          <rect x="1" y="1" width="280" height="58" rx="30" ry="30" />
+        </svg>
+      </button>
+
+  
+      <div id="random-entry"></div>
     </div>
 </body>
 </html>
