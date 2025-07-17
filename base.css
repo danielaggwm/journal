@@ -437,55 +437,33 @@ body {
   display: block !important;
   cursor: pointer;
 }
-/* 
+
 .remove-image-button {
   position: absolute;
-  top: 0px;
-  right: 0px;
+  top: 0;
+  right: 0;
   background: var(--light-orange);
   border: none;
   border-radius: 50%;
-  color: var(--medium-orange);
-  font-size: 16px;
   width: 24px;
   height: 24px;
   cursor: pointer;
-
+  padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0;
-  line-height: 1;
   box-sizing: border-box;
-} */
+}
 
-.remove-image-button {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  background: var(--light-orange);
-  border: none;
-  border-radius: 50%;
-  color: var(--medium-orange);
-  font-size: 16px;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-
-  /* Center text */
-  line-height: 24px;     /* same as height */
-  text-align: center;
-
-  /* Remove flex centering for this */
-  display: block;       
-  padding: 0;
-  box-sizing: border-box;
+.remove-image-button img {
+  width: 12px;  
+  height: 12px;
+  pointer-events: none; 
 }
 
 
 .remove-image-button:hover {
   background: var(--medium-orange);
-  color: var(--orange);
 }
 
 /* Blur background and fullscreen image */
