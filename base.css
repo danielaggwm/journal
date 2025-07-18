@@ -1158,7 +1158,7 @@ body {
   background: transparent;
   border: none;
   cursor: pointer;
-  z-index: 10;
+  z-index: 1;
 }
 
 .close-button-about img {
