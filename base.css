@@ -1047,8 +1047,9 @@ body {
 }
 
 .about-text {
-  width: 60%;
+  width: 50%;
   color: var(--dark-purple);
+  text-align: center;
 }
 
 
@@ -1147,14 +1148,14 @@ body {
 
 .random-entry-wrapper {
   position: relative;
-  width: 47%;
+  width: 600px;
   margin: 0 auto;
 }
 
 .close-button-about {
   position: absolute;
   top: 15px;
-  right: 15px;
+  right: 10px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -1192,7 +1193,7 @@ body {
   font-weight: 600;
   display: flex;
   align-items: center;
-  margin-right: 4rem;
+  margin-right: 5rem;
 }
 
 .compact-habit .habit-row {
