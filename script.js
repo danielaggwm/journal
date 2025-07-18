@@ -586,6 +586,19 @@ document.getElementById('clear-entry').addEventListener('click', async () => {
   document.getElementById('journal-modal').style.display = 'none';
 });
 
+// Function to disable scrolling
+function disableBodyScroll() {
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+}
+
+// Function to enable scrolling
+function enableBodyScroll() {
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
+}
 
 // image upload and preview
 const imageUploadInput = document.getElementById('image-upload');
@@ -630,6 +643,7 @@ imagePreview.addEventListener('click', async () => {
     // Create a temporary entry for the current image
     fullImage.src = currentImageSrc;
     imageOverlay.style.display = 'flex';
+    disableBodyScroll(); 
     return;
   }
 
@@ -638,6 +652,7 @@ imagePreview.addEventListener('click', async () => {
   if (currentImageIndex !== -1) {
     fullImage.src = journalEntriesWithImages[currentImageIndex].imageUrl;
     imageOverlay.style.display = 'flex';
+    disableBodyScroll();
   }
 });
 
@@ -646,6 +661,7 @@ imagePreview.addEventListener('click', async () => {
 imageOverlay.addEventListener('click', (e) => {
   if (e.target === imageOverlay) {
     imageOverlay.style.display = 'none';
+    enableBodyScroll();
   }
 });
 
@@ -709,13 +725,15 @@ function handleSwipe() {
   
   // Swipe left 
   if (touchStartX - touchEndX > swipeThreshold) {
-    document.getElementById('prev-image').click();
+    document.getElementById('next-image').click();
   }
   // Swipe right 
   if (touchEndX - touchStartX > swipeThreshold) {
-    document.getElementById('next-image').click();
+    document.getElementById('prev-image').click();
   }
 }
+
+
 
 // mood selections
 const moodButtons = document.querySelectorAll('.mood-button');
@@ -762,7 +780,6 @@ function updateUIState() {
     setThemeColor('#ffd3ce');
   }
 }
-
 
 // Use MutationObserver to detect modal open/close changes
 const observer = new MutationObserver(updateUIState);
