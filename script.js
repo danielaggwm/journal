@@ -650,14 +650,14 @@ imageOverlay.addEventListener('click', (e) => {
 });
 
 
-document.getElementById('prev-image').addEventListener('click', () => {
+document.getElementById('next-image').addEventListener('click', () => {
   if (currentImageIndex > 0) {
     currentImageIndex--;
     showEntryAtCurrentIndex();
   }
 });
 
-document.getElementById('next-image').addEventListener('click', () => {
+document.getElementById('prev-image').addEventListener('click', () => {
   if (currentImageIndex < journalEntriesWithImages.length - 1) {
     currentImageIndex++;
     showEntryAtCurrentIndex();
@@ -697,24 +697,23 @@ fullImage.addEventListener('touchend', (e) => {
 document.addEventListener('keydown', (e) => {
   if (imageOverlay.style.display === 'flex') {
     if (e.key === 'ArrowLeft') {
-      document.getElementById('next-image').click();  // Fixed direction
-    } else if (e.key === 'ArrowRight') {
       document.getElementById('prev-image').click();  // Fixed direction
+    } else if (e.key === 'ArrowRight') {
+      document.getElementById('next-image').click();  // Fixed direction
     }
   }
 });
 
 function handleSwipe() {
-  const swipeThreshold = 50; // Minimum swipe distance in pixels
+  const swipeThreshold = 50; 
   
-  // Swipe left (next image)
+  // Swipe left 
   if (touchStartX - touchEndX > swipeThreshold) {
-    document.getElementById('next-image').click();
-  }
-  
-  // Swipe right (previous image)
-  if (touchEndX - touchStartX > swipeThreshold) {
     document.getElementById('prev-image').click();
+  }
+  // Swipe right 
+  if (touchEndX - touchStartX > swipeThreshold) {
+    document.getElementById('next-image').click();
   }
 }
 

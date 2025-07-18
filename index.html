@@ -219,9 +219,17 @@
     </div>
 
     <div id="image-overlay" class="image-overlay" style="display: none;">
-      <button id="prev-image" class="overlay-nav">&#8592;</button>
-      <img id="full-image" src="" alt="Full image preview" />
-      <button id="next-image" class="overlay-nav">&#8594;</button>
+      <div class="image-container">
+        <img id="full-image" src="" alt="Full image preview" />
+        <div class="nav-controls">
+          <button id="prev-image" class="nav-button">
+            <img src="/journal/icons/left-arrow.svg" alt="Previous Day" class="nav-icon" />
+          </button>
+          <button id="next-image" class="nav-button">
+            <img src="/journal/icons/right-arrow.svg" alt="Next Day" class="nav-icon" />
+          </button>
+        </div>
+      </div>
     </div>
     
 </body>
