@@ -5,9 +5,9 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
-// ADD THESE TWO ⬇️
 import {
-  doc, setDoc, getDoc, deleteDoc
+  doc, setDoc, getDoc, deleteDoc,
+  query, collection, where, getDocs 
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 import {
@@ -17,6 +17,8 @@ import {
 let auth; 
 let calendar; 
 let currentViewMode = 'image';
+let journalEntriesWithImages = []; 
+let currentImageIndex = 0;
 
 let lastIsMobile = window.innerWidth <= 410;
 
@@ -224,7 +226,6 @@ async function renderCalendar() {
 }
 
 
-
 // journal entry firebase logic
 const db = window.firebaseApp.db;
 const storage = window.firebaseApp.storage;
@@ -414,6 +415,39 @@ async function clearJournalEntry(date) {
   }
 }
 
+let isFetchingEntries = false;
+
+async function fetchEntriesWithImages() {
+  if (isFetchingEntries) return;
+  isFetchingEntries = true;
+  
+  const user = auth.currentUser;
+  if (!user) {
+    isFetchingEntries = false;
+    return;
+  }
+
+  try {
+    const q = query(
+      collection(db, "journalEntries"),
+      where("userId", "==", user.uid),
+      where("imageUrl", "!=", "")
+    );
+    const querySnapshot = await getDocs(q);
+
+    journalEntriesWithImages = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      date: doc.data().date,
+      imageUrl: doc.data().imageUrl
+    })).sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
+    
+    console.log('Fetched', journalEntriesWithImages.length, 'entries with images');
+  } catch (error) {
+    console.error("Error fetching entries with images:", error);
+  } finally {
+    isFetchingEntries = false;
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   renderCalendar();
@@ -472,16 +506,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // —————— AUTH STATE: show/hide UI ——————
   onAuthStateChanged(auth, user => {
     if (user) {
-      authModal.style.display        = 'none';
-      menuWrapper.style.display      = 'flex';
+      authModal.style.display = 'none';
+      menuWrapper.style.display = 'flex';
       document.getElementById('calendar').style.display = 'block';
+      fetchEntriesWithImages(); // Add this line
       renderCalendar();
     } else {
-      authModal.style.display        = 'flex';
-      menuWrapper.style.display      = 'none';
+      authModal.style.display = 'flex';
+      menuWrapper.style.display = 'none';
       document.getElementById('calendar').style.display = 'none';
+      journalEntriesWithImages = []; // Clear when logged out
     }
   });
+  
 
   // —————— JOURNAL MODAL: open/close ——————
   window.openJournalModal = dateStr => {
@@ -579,14 +616,107 @@ removeImageButton.addEventListener('click', () => {
   uploadLabel.style.display = 'inline-block';
 });
 
-imagePreview.addEventListener('click', () => {
-  fullImage.src = imagePreview.src;
-  imageOverlay.style.display = 'flex';
+// imagePreview.addEventListener('click', () => {
+//   fullImage.src = imagePreview.src;
+//   imageOverlay.style.display = 'flex';
+// });
+
+imagePreview.addEventListener('click', async () => {
+  const currentImageSrc = imagePreview.src;
+  
+  // If we haven't loaded entries yet or the current image isn't in our list
+  if (journalEntriesWithImages.length === 0 || 
+      !journalEntriesWithImages.some(entry => entry.imageUrl === currentImageSrc)) {
+    // Create a temporary entry for the current image
+    fullImage.src = currentImageSrc;
+    imageOverlay.style.display = 'flex';
+    return;
+  }
+
+  currentImageIndex = journalEntriesWithImages.findIndex(entry => entry.imageUrl === currentImageSrc);
+  
+  if (currentImageIndex !== -1) {
+    fullImage.src = journalEntriesWithImages[currentImageIndex].imageUrl;
+    imageOverlay.style.display = 'flex';
+  }
 });
 
-imageOverlay.addEventListener('click', () => {
-  imageOverlay.style.display = 'none';
+
+
+imageOverlay.addEventListener('click', (e) => {
+  if (e.target === imageOverlay) {
+    imageOverlay.style.display = 'none';
+  }
 });
+
+
+document.getElementById('prev-image').addEventListener('click', () => {
+  if (currentImageIndex > 0) {
+    currentImageIndex--;
+    showEntryAtCurrentIndex();
+  }
+});
+
+document.getElementById('next-image').addEventListener('click', () => {
+  if (currentImageIndex < journalEntriesWithImages.length - 1) {
+    currentImageIndex++;
+    showEntryAtCurrentIndex();
+  }
+});
+
+async function showEntryAtCurrentIndex() {
+  if (currentImageIndex < 0 || currentImageIndex >= journalEntriesWithImages.length) return;
+
+  const entry = journalEntriesWithImages[currentImageIndex];
+  if (entry) {
+    fullImage.src = entry.imageUrl;
+    
+    // Optional: Update the modal to show this entry's details
+    if (selectedDate !== entry.date) {
+      selectedDate = entry.date;
+      await loadJournalEntry(entry.date);
+    }
+  }
+}
+
+// Touch swipe variables
+let touchStartX = 0;
+let touchEndX = 0;
+
+// Add these event listeners for touch support
+fullImage.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+fullImage.addEventListener('touchend', (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+}, { passive: true });
+
+// Keyboard navigation (keep your existing but fix the direction)
+document.addEventListener('keydown', (e) => {
+  if (imageOverlay.style.display === 'flex') {
+    if (e.key === 'ArrowLeft') {
+      document.getElementById('next-image').click();  // Fixed direction
+    } else if (e.key === 'ArrowRight') {
+      document.getElementById('prev-image').click();  // Fixed direction
+    }
+  }
+});
+
+function handleSwipe() {
+  const swipeThreshold = 50; // Minimum swipe distance in pixels
+  
+  // Swipe left (next image)
+  if (touchStartX - touchEndX > swipeThreshold) {
+    document.getElementById('next-image').click();
+  }
+  
+  // Swipe right (previous image)
+  if (touchEndX - touchStartX > swipeThreshold) {
+    document.getElementById('prev-image').click();
+  }
+}
 
 // mood selections
 const moodButtons = document.querySelectorAll('.mood-button');
