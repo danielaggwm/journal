@@ -439,6 +439,7 @@ body {
 }
 
 .image-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1269,10 +1270,13 @@ body {
 
 /* image navigation */
 .nav-controls {
+  position: absolute;
+  bottom: 30px;
   display: flex;
   justify-content: center;
-  gap: 40px;
-  /* width: 100%; */
+  gap: 30px;
+  background-color: var(--medium-orange);
+  border-radius: 40px;
 }
 
 .nav-button {
@@ -1280,21 +1284,20 @@ body {
   border: none;
   cursor: pointer;
   padding: 10px;
-  transition: transform 0.2s;
-}
-
-.nav-button:hover {
-  transform: scale(1.1);
 }
 
 .nav-icon {
-  width: 30px;
-  height: 30px;
+  width: 15px;
+  height: 15px;
 }
 
 /* Responsive adjustments */
 @media (max-width: 410px) {
   .nav-icon {
+    visibility: hidden;
+  }
+
+  .nav-controls {
     visibility: hidden;
   }
 }
