@@ -18,11 +18,11 @@ let auth;
 let calendar; 
 let currentViewMode = 'image';
 
-let lastIsMobile = window.innerWidth <= 400;
+let lastIsMobile = window.innerWidth <= 410;
 
-// This will re-render the calendar (and fire datesSet) whenever we cross 400px.
+// This will re-render the calendar (and fire datesSet) whenever we cross 410px.
 window.addEventListener('resize', () => {
-  const nowMobile = window.innerWidth <= 400;
+  const nowMobile = window.innerWidth <= 410;
   if (nowMobile !== lastIsMobile) {
     lastIsMobile = nowMobile;
     renderCalendar();
@@ -159,7 +159,7 @@ async function renderCalendar() {
       
     },
     datesSet: () => {
-      if (window.innerWidth > 400) return;
+      if (window.innerWidth > 410) return;
 
       const toolbar = document.querySelector('.fc-header-toolbar');
       if (!toolbar) return;
