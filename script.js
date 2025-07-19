@@ -687,9 +687,19 @@ async function showEntryAtCurrentIndex() {
   if (entry) {
     fullImage.src = entry.imageUrl;
     
-    // Optional: Update the modal to show this entry's details
     if (selectedDate !== entry.date) {
       selectedDate = entry.date;
+      
+      // Format the new date
+      const [year, month, day] = entry.date.split("-");
+      const localDate = new Date(Number(year), Number(month) - 1, Number(day));
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const formattedDate = localDate.toLocaleDateString('en-US', options);
+      
+      // Update the date label
+      document.getElementById('journal-date-label').textContent = formattedDate;
+      
+      // Load the journal entry
       await loadJournalEntry(entry.date);
     }
   }
