@@ -567,17 +567,23 @@
           }
 
           const token = await user.getIdToken();
-
-          const baseUrl = window.location.hostname === 'localhost'
-            ? 'http://localhost:8080'
-            : 'https://backend-journal.onrender.com';
-
-            const response = await fetch(`${baseUrl}/search?q=${encodeURIComponent(query)}`, {
+          const response = await fetch(`http://localhost:8080/search?q=${encodeURIComponent(query)}`, {
             headers: {
               'Authorization': token,
               'Content-Type': 'application/json'
             }
           });
+
+          // const baseUrl = window.location.hostname === 'localhost'
+          //   ? 'http://localhost:8080'
+          //   : 'https://backend-journal.onrender.com';
+
+          //   const response = await fetch(`${baseUrl}/search?q=${encodeURIComponent(query)}`, {
+          //   headers: {
+          //     'Authorization': token,
+          //     'Content-Type': 'application/json'
+          //   }
+          // });
 
           if (!response.ok) {
             throw new Error(await response.text());

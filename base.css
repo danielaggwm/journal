@@ -1351,6 +1351,7 @@ body.no-scroll {
   width: 100%;
   border-radius: 20px;
   border: solid 1px var(--dark-purple);
+  font-size: 16.5px;
 }
 
 .clear-button {
