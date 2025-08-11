@@ -136,7 +136,7 @@
             container.innerHTML = "";
 
             const margin = { top: 40, right: 25, bottom: 60, left: 25 };
-            const baseWidth = window.innerWidth < 400 ? 350 : 400;
+            const baseWidth = window.innerWidth < 410 ? 350 : 400;
             const width = baseWidth - margin.left - margin.right;
             const height = 300 - margin.top - margin.bottom;
 
@@ -529,6 +529,218 @@
             };
         }
 
+
+      // ===== AI SEARCH ===== //
+      document.getElementById('search-btn').addEventListener('click', async () => {
+        const query = document.getElementById('search-input').value;
+        if (!query) return;
+        
+        const results = await searchEntries(query);
+        displaySearchResults(results, query);
+      });
+
+      function formatDateForSearchResults(dateStr) {
+        try {
+          // If date is in YYYY-MM-DD format (from Python)
+          if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            // Create date in local timezone (avoids UTC conversion)
+            const date = new Date(year, month - 1, day);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+          }
+          
+          // Fallback to original formatDate for other formats
+          return formatDate(dateStr);
+        } catch (e) {
+          console.error('Search date formatting error:', e);
+          return dateStr; // Return raw string if parsing fails
+        }
+      }
+
+      async function searchEntries(query) {
+        try {
+          const user = auth.currentUser;
+          if (!user) {
+            console.log("User not logged in");
+            return [];
+          }
+
+          const token = await user.getIdToken();
+          const response = await fetch(`http://localhost:8080/search?q=${encodeURIComponent(query)}`, {
+            headers: {
+              'Authorization': token,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          const data = await response.json();
+          console.log("Search results:", data);
+          
+          if (data.results && data.results.length > 0) {
+            return { 
+              results: data.results, 
+              query: data.query,
+              stats: data.stats 
+            };
+          } else {
+            return { results: [], query };
+          }
+        } catch (error) {
+          console.error("Search failed:", error);
+          return { results: [], query };
+        }
+      }
+
+      function displaySearchResults(resultObj, searchQuery) {
+        const container = document.getElementById('search-results');
+        container.innerHTML = '';
+        
+        const { results, query, stats } = resultObj;
+        const effectiveQuery = query || searchQuery;
+
+        if (!results || results.length === 0) {
+          container.innerHTML = `
+            <div class="no-results">
+              <p>No entries found for "${effectiveQuery}"</p>
+              ${stats ? `<small>Scanned ${stats.total_entries} entries</small>` : ''}
+            </div>
+          `;
+          return;
+        }
+
+        // Add stats summary boxes
+        container.innerHTML += `
+          <div class="search-stats">
+            <div class="stat-box">
+              <div class="stat-value">${stats.exact_matches}</div>
+              <div class="stat-label">Exact Matches</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">${stats.semantic_matches}</div>
+              <div class="stat-label">Semantic Matches</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">${stats.total_entries}</div>
+              <div class="stat-label">Total Entries</div>
+            </div>
+          </div>
+        `;
+
+        // Add the search results
+        results.forEach(entry => {
+          const entryEl = document.createElement('div');
+          entryEl.className = `search-result ${entry.match_type}`;
+          
+          let highlightedText = highlightMatches(
+            entry.description, 
+            effectiveQuery, 
+            entry.matching_words || []
+          );
+          
+          entryEl.innerHTML = `
+          <div class="entry-header">
+            <h3>${formatDateForSearchResults(entry.date)}</h3>
+            <button class="expand-toggle" aria-label="Expand entry">
+              <img src="icons/top-arrow.svg" class="top-arrow" alt="Collapse">
+              <img src="icons/bottom-arrow.svg" class="bottom-arrow" alt="Expand">
+            </button>
+          </div>
+          <div class="entry-content">
+            <div class="text-content">
+              ${highlightedText.replace(/\n/g, '<br>')}
+            </div>
+            <div class="fade-out"></div>
+            ${entry.imageUrl ? `<img src="${entry.imageUrl}" class="preview-image">` : ''}
+          </div>
+          <div class="match-details">
+            ${entry.matching_words?.length ? `
+              <div class="matched-words">
+                Related words: ${entry.matching_words.map(w => `<span>${w}</span>`).join(', ')}
+              </div>
+            ` : ''}
+            <span class="match-type ${entry.match_type}">${entry.match_type}</span>
+            <span class="score">${entry.score.toFixed(2)}</span>
+            <span class="details">${entry.match_details}</span>
+          </div>
+        `;
+
+          // Add expand/collapse functionality
+          const contentDiv = entryEl.querySelector('.entry-content');
+          const toggleBtn = entryEl.querySelector('.expand-toggle');
+          
+          toggleBtn.addEventListener('click', () => {
+            contentDiv.classList.toggle('expanded');
+            toggleBtn.classList.toggle('expanded');
+            
+            // Update aria-label for accessibility
+            const isExpanded = contentDiv.classList.contains('expanded');
+            toggleBtn.setAttribute('aria-label', isExpanded ? 'Collapse entry' : 'Expand entry');
+          });
+
+          container.appendChild(entryEl);
+        });
+      }
+
+      function highlightMatches(text, query, matchingWords) {
+        let result = text;
+        
+        // First find all exact matches to protect them
+        const exactMatches = [];
+        const cleanQuery = query.replace(/[^\w\s]/g, '');
+        
+        if (cleanQuery) {
+          const regex = new RegExp(`(${escapeRegExp(cleanQuery)})`, 'gi');
+          result = result.replace(regex, (match) => {
+            exactMatches.push(match.toLowerCase());
+            return `<mark class="exact-match">${match}</mark>`;
+          });
+        }
+
+        // Then highlight semantic matches, skipping exact matches
+        matchingWords.forEach(word => {
+          const cleanWord = word.replace(/[^\w]/g, '');
+          if (cleanWord.length > 2 && !exactMatches.includes(cleanWord.toLowerCase())) {
+            const regex = new RegExp(`(\\b${escapeRegExp(cleanWord)}\\b)(?!</mark>)`, 'gi');
+            result = result.replace(regex, '<mark class="semantic-match">$1</mark>');
+          }
+        });
+
+        return result;
+      }
+
+      function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      function formatDate(dateStr) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateStr).toLocaleDateString('en-US', options);
+      }
+
+      // clear functionality
+      const clearButton = document.getElementById('clear-search');
+      const searchInput = document.getElementById('search-input');
+
+      // Show/hide clear button based on input
+      searchInput.addEventListener('input', () => {
+        clearButton.style.display = searchInput.value ? 'block' : 'none';
+      });
+
+      // Clear the input when clicked
+      clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        searchInput.focus();
+        clearButton.style.display = 'none';
+        document.getElementById('search-results').innerHTML = '';
+      });
+
+      // Hide clear button initially
+      clearButton.style.display = 'none';
     </script>
 </head>
 
@@ -571,5 +783,22 @@
     </div>
 
     <div id="streak-count"></div>
+
+    <!-- AI Search -->
+    <div class="search-section">
+      <div class="search-container">
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Search your journal...">
+          <button id="clear-search" class="clear-button">
+            <img src="icons/close4.svg" alt="Clear search">
+          </button>
+        </div>
+        <button id="search-btn">
+          <img src="icons/search.svg" alt="Search" />
+        </button>
+      </div>
+
+      <div id="search-results" class="search-results-container"></div>
+    </div>
 </body>
 </html>
