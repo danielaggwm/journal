@@ -1571,8 +1571,8 @@ mark.semantic-match {
   background: rgba(255,255,255,0.8);
   border: none;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 1.5em;   /* responsive size */
+  height: 1.5em;  /* responsive size */
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1627,5 +1627,12 @@ mark.semantic-match {
 
   .no-results {
     max-width: 350px;
+  }
+
+  .expand-toggle {
+    width: 1.2em;
+    height: 1.2em;
+    right: 8px;
+    top: 8px;
   }
 }
