@@ -589,11 +589,6 @@
         const resultsContainer = document.getElementById('search-results');
 
         // Show loader and clear previous results
-        loader.innerHTML = `
-          <span></span>
-          <span></span>
-          <span></span>
-        `;
         loader.style.display = 'flex';
         resultsContainer.innerHTML = '';
 
@@ -620,7 +615,7 @@
         } catch (error) {
           console.error("Search failed:", error);
           return { results: [], query };
-          
+
         } finally {
           // Hide loader after search completes
           loader.style.display = 'none';
@@ -829,9 +824,11 @@
         </button>
       </div>
 
+      <div id="search-loader" class="loader" style="display: none;"></div>
+
       <div id="search-results" class="search-results-container">
-        <div id="search-loader" class="loader" style="display: none;"></div>
       </div>
+
     </div>
 </body>
 </html>
