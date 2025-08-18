@@ -538,6 +538,27 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// PRELOAD SEARCH AI
+(async () => {
+  try {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const token = await user.getIdToken();
+    await fetch('https://journal-search-711305745141.us-central1.run.app/preload_entries', {
+      method: 'POST',
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log("Journal entries preloading triggered");
+  } catch (err) {
+    console.warn("Preload failed:", err);
+  }
+})();
+
+
 let selectedDate = null;
 
 function openJournalModal(dateStr) {
