@@ -72,6 +72,16 @@ body {
   color: var(--dark-lilac); 
 }
 
+.login-title {
+  position: relative;
+}
+
+.login-title h2 {
+  position: relative;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
 .modal-content {
   border-radius: 12px;
   padding: 2rem;
@@ -86,7 +96,6 @@ body {
 }
 
 
-
 .mood {
   display: flex;
   flex-direction: column;
@@ -99,6 +108,7 @@ body {
   justify-content: center;
   position: relative;
   margin: 0 auto;
+  margin-top: 1rem;
   width: fit-content;
 }
 
