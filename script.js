@@ -449,6 +449,32 @@ async function fetchEntriesWithImages() {
   }
 }
 
+
+// reset password
+
+import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// Forgot password link
+document.getElementById('forgot-password').addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById('email').value;
+
+  if (!email) {
+    alert("Please enter your email");
+    return;
+  }
+
+  sendPasswordResetEmail(auth, email)
+    .then(() => {
+      alert("Check your inbox (or spam) for a reset link");
+    })
+    .catch((err) => {
+      alert(err.message);
+    });
+});
+
+
 document.addEventListener('DOMContentLoaded', () => {
   renderCalendar();
   // —————— Elements ——————

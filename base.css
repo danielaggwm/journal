@@ -82,6 +82,23 @@ body {
   text-align: center;
 }
 
+.forgot-password {
+  width: 280px;              
+  text-align: right;         
+  margin-top: 0.2rem;      
+  font-size: 0.8rem;
+}
+
+.forgot-password a {
+  color: #b9b0c7;
+  text-decoration: none;     
+  cursor: pointer;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline; 
+}
+
 .modal-content {
   border-radius: 12px;
   padding: 2rem;
