@@ -289,6 +289,21 @@ async function saveJournalEntry(date) {
     habits,
     timestamp: new Date()
   });
+
+  // 🔥 Refresh backend cache after saving
+  try {
+    const token = await user.getIdToken();
+    await fetch("https://journal-search-711305745141.us-central1.run.app/refresh_entries", {
+      method: "POST",
+      headers: {
+        "Authorization": token,
+        "Content-Type": "application/json"
+      }
+    });
+    console.log("Cache refreshed");
+  } catch (err) {
+    console.error("Cache refresh failed:", err);
+  }
 }
 
 
