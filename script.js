@@ -279,7 +279,7 @@ async function saveJournalEntry(date) {
     habits[habitId] = { label, value };
   });
 
-  // Save to Firestore
+  // ✅ Save to Firestore (await this)
   await setDoc(entryRef, {
     userId: user.uid,
     date,
@@ -290,20 +290,25 @@ async function saveJournalEntry(date) {
     timestamp: new Date()
   });
 
-  // 🔥 Refresh backend cache after saving
-  try {
-    const token = await user.getIdToken();
-    await fetch("https://journal-search-711305745141.us-central1.run.app/refresh_entries", {
-      method: "POST",
-      headers: {
-        "Authorization": token,
-        "Content-Type": "application/json"
-      }
-    });
-    console.log("Cache refreshed");
-  } catch (err) {
-    console.error("Cache refresh failed:", err);
-  }
+  // ✅ Close modal immediately after save
+  document.getElementById('journal-modal').style.display = 'none';
+
+  // 🔥 Kick off cache refresh in background (don’t await)
+  (async () => {
+    try {
+      const token = await user.getIdToken();
+      await fetch("https://journal-search-711305745141.us-central1.run.app/refresh_entries", {
+        method: "POST",
+        headers: {
+          "Authorization": token,
+          "Content-Type": "application/json"
+        }
+      });
+      console.log("Cache refreshed");
+    } catch (err) {
+      console.error("Cache refresh failed:", err);
+    }
+  })();
 }
 
 

@@ -789,6 +789,7 @@ body.no-scroll {
     height: 90vh !important;   
     border-radius: 10px;   
     align-items: normal !important;
+    z-index: 3;
   }
 
   .menu-items {
