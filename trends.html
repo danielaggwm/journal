@@ -73,8 +73,13 @@
             const date = new Date(year, month - 1, day);
             date.setHours(0, 0, 0, 0);
 
-      
-            allEntries.push({ date, mood: data.mood, habits: data.habits });
+            allEntries.push({
+              date,
+              mood: data.mood,
+              habits: data.habits,
+              description: data.description || "",
+              imageUrl: data.imageUrl || ""
+            });
           });
       
           await drawStreakCounter(); // ✅ draw UI before trying to update values
@@ -558,7 +563,15 @@
         }
       }
 
+      // AI SEMANTIC SEARCH, NEEDS DEUBBING
       // async function searchEntries(query) {
+      //   const loader = document.getElementById('search-loader');
+      //   const resultsContainer = document.getElementById('search-results');
+
+      //   // Show loader and clear previous results
+      //   loader.style.display = 'flex';
+      //   resultsContainer.innerHTML = '';
+
       //   try {
       //     const user = auth.currentUser;
       //     if (!user) throw new Error("User not logged in");
@@ -578,49 +591,53 @@
 
       //     if (!response.ok) throw new Error(await response.text());
       //     return await response.json();
+
       //   } catch (error) {
       //     console.error("Search failed:", error);
       //     return { results: [], query };
+
+      //   } finally {
+      //     // Hide loader after search completes
+      //     loader.style.display = 'none';
       //   }
       // }
 
+
+      // SIMPLER LOCAL SEARCH FUNCTION
       async function searchEntries(query) {
-        const loader = document.getElementById('search-loader');
-        const resultsContainer = document.getElementById('search-results');
+        const lowerQuery = query.trim().toLowerCase();
+        if (!lowerQuery) return { results: [], query, stats: { total_entries: allEntries.length, exact_matches: 0, semantic_matches: 0 } };
 
-        // Show loader and clear previous results
-        loader.style.display = 'flex';
-        resultsContainer.innerHTML = '';
+        let exactMatchesCount = 0;
 
-        try {
-          const user = auth.currentUser;
-          if (!user) throw new Error("User not logged in");
+        // Filter entries by description only
+        const results = allEntries
+          .filter(entry => entry.description && entry.description.toLowerCase().includes(lowerQuery))
+          .map(entry => {
+            exactMatchesCount++;
+            // Find all words in description matching the query (for highlighting)
+            const matchingWords = [query];
+            return {
+              date: entry.date,
+              description: entry.description,
+              match_type: "exact",
+              matching_words: matchingWords,
+              score: 1, // you can later implement smarter scoring if needed
+              match_details: "Local search"
+            };
+          });
 
-          const token = await user.getIdToken();
-          const response = await fetch(
-            `https://journal-search-711305745141.us-central1.run.app/search?q=${encodeURIComponent(query)}`,
-            {
-              method: 'GET',
-              headers: {
-                'Authorization': token,
-                'Content-Type': 'application/json'
-              },
-              credentials: 'same-origin'
-            }
-          );
-
-          if (!response.ok) throw new Error(await response.text());
-          return await response.json();
-
-        } catch (error) {
-          console.error("Search failed:", error);
-          return { results: [], query };
-
-        } finally {
-          // Hide loader after search completes
-          loader.style.display = 'none';
-        }
+        return {
+          results,
+          query,
+          stats: {
+            total_entries: allEntries.length,
+            exact_matches: exactMatchesCount,
+            semantic_matches: 0 // not doing ML now, so semantic = 0
+          }
+        };
       }
+
 
       function displaySearchResults(resultObj, searchQuery) {
         const container = document.getElementById('search-results');
@@ -644,11 +661,7 @@
           <div class="search-stats">
             <div class="stat-box">
               <div class="stat-value">${stats.exact_matches}</div>
-              <div class="stat-label">Exact Matches</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-value">${stats.semantic_matches}</div>
-              <div class="stat-label">Semantic Matches</div>
+              <div class="stat-label">Total Matches</div>
             </div>
             <div class="stat-box">
               <div class="stat-value">${stats.total_entries}</div>
@@ -657,7 +670,62 @@
           </div>
         `;
 
-        // Add the search results
+        // ORIGINAL CONTAINER FOR MATCHES
+        // container.innerHTML += `
+        //   <div class="search-stats">
+        //     <div class="stat-box">
+        //       <div class="stat-value">${stats.exact_matches}</div>
+        //       <div class="stat-label">Exact Matches</div>
+        //     </div>
+        //     <div class="stat-box">
+        //       <div class="stat-value">${stats.semantic_matches}</div>
+        //       <div class="stat-label">Semantic Matches</div>
+        //     </div>
+        //     <div class="stat-box">
+        //       <div class="stat-value">${stats.total_entries}</div>
+        //       <div class="stat-label">Total Entries</div>
+        //     </div>
+        //   </div>
+        // `;
+
+        // ORIGINAL - Add the search results
+        // results.forEach(entry => {
+        //   const entryEl = document.createElement('div');
+        //   entryEl.className = `search-result ${entry.match_type}`;
+          
+        //   let highlightedText = highlightMatches(
+        //     entry.description, 
+        //     effectiveQuery, 
+        //     entry.matching_words || []
+        //   );
+          
+        //   entryEl.innerHTML = `
+        //   <div class="entry-header">
+        //     <h3>${formatDateForSearchResults(entry.date)}</h3>
+        //     <button class="expand-toggle" aria-label="Expand entry">
+        //       <img src="icons/top-arrow.svg" class="top-arrow" alt="Collapse">
+        //       <img src="icons/bottom-arrow.svg" class="bottom-arrow" alt="Expand">
+        //     </button>
+        //   </div>
+        //   <div class="entry-content">
+        //     <div class="text-content">
+        //       ${highlightedText.replace(/\n/g, '<br>')}
+        //     </div>
+        //     <div class="fade-out"></div>
+        //     ${entry.imageUrl ? `<img src="${entry.imageUrl}" class="preview-image">` : ''}
+        //   </div>
+        //   <div class="match-details">
+        //     ${entry.matching_words?.length ? `
+        //       <div class="matched-words">
+        //         Related words: ${entry.matching_words.map(w => `<span>${w}</span>`).join(', ')}
+        //       </div>
+        //     ` : ''}
+        //     <span class="match-type ${entry.match_type}">${entry.match_type}</span>
+        //     <span class="score">${entry.score.toFixed(2)}</span>
+        //     <span class="details">${entry.match_details}</span>
+        //   </div>
+        // `;
+
         results.forEach(entry => {
           const entryEl = document.createElement('div');
           entryEl.className = `search-result ${entry.match_type}`;
@@ -689,9 +757,6 @@
                 Related words: ${entry.matching_words.map(w => `<span>${w}</span>`).join(', ')}
               </div>
             ` : ''}
-            <span class="match-type ${entry.match_type}">${entry.match_type}</span>
-            <span class="score">${entry.score.toFixed(2)}</span>
-            <span class="details">${entry.match_details}</span>
           </div>
         `;
 
@@ -711,6 +776,8 @@
           container.appendChild(entryEl);
         });
       }
+
+      
 
       function highlightMatches(text, query, matchingWords) {
         let result = text;
