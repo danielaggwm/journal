@@ -524,10 +524,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // —————— AUTH: Signup, Login, Logout ——————
   document.getElementById('signup').addEventListener('click', () => {
-    const email = document.getElementById('email').value;
-    const pass  = document.getElementById('password').value;
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value.trim();
+
+    // Friendly validation first
+    if (!email || !pass) {
+      alert("Enter your email and create a password to sign up.");
+      return;
+    }
+
     createUserWithEmailAndPassword(auth, email, pass)
-      .then(() => alert("Signup successful"))
+      .then(() => alert("Signup successful!"))
       .catch(err => alert(err.message));
   });
 
