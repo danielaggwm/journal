@@ -14,6 +14,165 @@
 
     <meta name="theme-color" content="#f4eefe" id="theme-color-meta">
     <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <style>
+      #wrapped-btn {
+        display: block;
+        margin: 1.5rem auto 0.5rem;
+        background-color: var(--medium-orange);
+        border: 1px dashed var(--dark-purple);
+        color: var(--dark-purple);
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        border-radius: 40px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      #wrapped-btn:hover {
+        background-color: var(--orange);
+        color: var(--dark-purple);
+        border: 1px solid var(--dark-purple);
+      }
+
+      #wrapped-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgba(0,0,0,0.6);
+        align-items: center;
+        justify-content: center;
+      }
+      #wrapped-modal-inner {
+        position: relative;
+        width: 100%;
+        max-width: 420px;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      @media (min-width: 440px) {
+        #wrapped-modal-inner { height: 85vh; max-height: 720px; border-radius: 24px; }
+      }
+      #wrapped-slide-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 2rem 1.5rem;
+        text-align: center;
+        overflow-y: auto;
+        user-select: none;
+        background: transparent;
+      }
+      #wrapped-close {
+        position: absolute;
+        top: 1rem; right: 1rem;
+        background: rgba(255,255,255,0.35);
+        border: none; border-radius: 50%;
+        width: 36px; height: 36px;
+        cursor: pointer; padding: 0;
+        display: flex; align-items: center; justify-content: center;
+        z-index: 10;
+      }
+
+      #wrapped-close:hover {background: rgba(255,255,255,0.55); }
+
+      #wrapped-close img { width: 10px; height: auto; display: block; }
+      #wrapped-nav {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.9rem 1.5rem;
+        background: transparent;
+      }
+
+      .ws-nav-btn {
+        background: rgba(255,255,255,0.35); border: none; border-radius: 50%;
+        width: 40px; height: 40px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.2s;
+        padding: 0;
+      }
+      .ws-nav-btn img { width: 10px; height: auto; display: block; }
+      .ws-nav-btn:hover { background: rgba(255,255,255,0.55); }
+      #wrapped-dots { display: flex; gap: 6px; align-items: center; }
+      .ws-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(61,27,83,0.25); transition: all 0.2s; }
+      .ws-dot.active { background: #3d1b53; transform: scale(1.35); }
+
+      /* intro slide layout */
+      #wrapped-slide-body.ws-intro-active {
+        justify-content: flex-start;
+        align-items: stretch;
+        padding: 2.5rem 2rem 1.5rem;
+      }
+      .ws-intro-layout {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-start;
+        text-align: left;
+        width: 100%;
+      }
+      .ws-intro-title {
+        font-size: 3rem;
+        font-weight: 700;
+        line-height: 1.05;
+        margin: 1.5rem 0.8rem 0.8rem;
+        font-family: 'Poppins', sans-serif;
+        color: var(--dark-purple);
+      }
+      .ws-intro-date {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-left: 0.8rem;
+        color: var(--dark-purple);
+        font-family: 'Poppins', sans-serif;
+      }
+      .ws-intro-bottom {
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        align-self: flex-end;
+      }
+      .ws-intro-count {
+        font-size: 2.8rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--dark-purple);
+        font-family: 'Poppins', sans-serif;
+      }
+      .ws-intro-count-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--dark-purple);
+        font-family: 'Poppins', sans-serif;
+      }
+
+      .ws-emoji { font-size: 3.5rem; margin-bottom: 0.75rem; line-height: 1; }
+      .ws-title { font-size: 1.9rem; font-weight: 600; margin: 0 0 0.5rem; font-family: 'Poppins', sans-serif; }
+      .ws-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; opacity: 0.65; margin-bottom: 0.35rem; font-family: 'Poppins', sans-serif; }
+      .ws-big-stat { font-size: 3.6rem; font-weight: 600; margin: 0.2rem 0 0.4rem; line-height: 1; font-family: 'Poppins', sans-serif; }
+      .ws-subtitle { font-size: 1rem; opacity: 0.82; margin: 0.25rem 0 0; line-height: 1.4; max-width: 300px; font-family: 'Poppins', sans-serif; }
+      .ws-detail { font-size: 0.82rem; opacity: 0.65; margin-top: 0.35rem; font-family: 'Poppins', sans-serif; }
+      .ws-allstat-list { display: flex; flex-direction: column; width: 100%; max-width: 320px; margin-top: 1rem; }
+      .ws-allstat-block { display: flex; align-items: center; gap: 0.85rem; padding: 0.65rem 0; border-bottom: 1px solid rgba(61,27,83,0.15); }
+      .ws-allstat-block:last-child { border-bottom: none; }
+      .ws-allstat-left { display: flex; align-items: baseline; gap: 0.3rem; flex-shrink: 0; }
+      .ws-allstat-count { font-size: 2rem; font-weight: 700; line-height: 1; color: #3d1b53; font-family: 'Poppins', sans-serif; }
+      .ws-allstat-days { font-size: 0.82rem; font-weight: 500; color: #3d1b53; font-family: 'Poppins', sans-serif; opacity: 0.7; }
+      .ws-allstat-right { display: flex; flex-direction: column; align-items: flex-end; text-align: right; margin-left: auto; }
+      .ws-allstat-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; font-family: 'Poppins', sans-serif; }
+      .ws-allstat-pct { font-size: 0.88rem; font-weight: 600; color: #3d1b53; font-family: 'Poppins', sans-serif; }
+      #wrapped-chart { margin-top: 0.5rem; }
+    </style>
+
     <script type="module">
         let selectedHabitId = "habit1"; 
 
@@ -73,12 +232,18 @@
             const date = new Date(year, month - 1, day);
             date.setHours(0, 0, 0, 0);
 
-      
-            allEntries.push({ date, mood: data.mood, habits: data.habits });
+            allEntries.push({
+              date,
+              mood: data.mood,
+              habits: data.habits,
+              description: data.description || "",
+              imageUrl: data.imageUrl || ""
+            });
           });
       
           await drawStreakCounter(); // ✅ draw UI before trying to update values
           await renderForCurrentView();
+          updateWrappedButton();
         });
       
         // ✅ Updated to make weeks start on Monday
@@ -259,18 +424,21 @@
           currentView = 'weekly';
           currentStartDate = getStartOfWeek(new Date());
           renderForCurrentView();
+          updateWrappedButton();
         });
-      
+
         document.getElementById('monthly').addEventListener('click', () => {
           currentView = 'monthly';
           currentStartDate = getStartOfMonth(new Date());
           renderForCurrentView();
+          updateWrappedButton();
         });
-      
+
         document.getElementById('all').addEventListener('click', () => {
           currentView = 'all';
           document.getElementById('current-range').textContent = "All Time";
           renderForCurrentView();
+          updateWrappedButton();
         });
       
         document.getElementById('prev-date').addEventListener('click', () => {
@@ -558,7 +726,15 @@
         }
       }
 
+      // AI SEMANTIC SEARCH, NEEDS DEUBBING
       // async function searchEntries(query) {
+      //   const loader = document.getElementById('search-loader');
+      //   const resultsContainer = document.getElementById('search-results');
+
+      //   // Show loader and clear previous results
+      //   loader.style.display = 'flex';
+      //   resultsContainer.innerHTML = '';
+
       //   try {
       //     const user = auth.currentUser;
       //     if (!user) throw new Error("User not logged in");
@@ -578,49 +754,53 @@
 
       //     if (!response.ok) throw new Error(await response.text());
       //     return await response.json();
+
       //   } catch (error) {
       //     console.error("Search failed:", error);
       //     return { results: [], query };
+
+      //   } finally {
+      //     // Hide loader after search completes
+      //     loader.style.display = 'none';
       //   }
       // }
 
+
+      // SIMPLER LOCAL SEARCH FUNCTION
       async function searchEntries(query) {
-        const loader = document.getElementById('search-loader');
-        const resultsContainer = document.getElementById('search-results');
+        const lowerQuery = query.trim().toLowerCase();
+        if (!lowerQuery) return { results: [], query, stats: { total_entries: allEntries.length, exact_matches: 0, semantic_matches: 0 } };
 
-        // Show loader and clear previous results
-        loader.style.display = 'flex';
-        resultsContainer.innerHTML = '';
+        let exactMatchesCount = 0;
 
-        try {
-          const user = auth.currentUser;
-          if (!user) throw new Error("User not logged in");
+        // Filter entries by description only
+        const results = allEntries
+          .filter(entry => entry.description && entry.description.toLowerCase().includes(lowerQuery))
+          .map(entry => {
+            exactMatchesCount++;
+            // Find all words in description matching the query (for highlighting)
+            const matchingWords = [query];
+            return {
+              date: entry.date,
+              description: entry.description,
+              match_type: "exact",
+              matching_words: matchingWords,
+              score: 1, // you can later implement smarter scoring if needed
+              match_details: "Local search"
+            };
+          });
 
-          const token = await user.getIdToken();
-          const response = await fetch(
-            `https://journal-search-711305745141.us-central1.run.app/search?q=${encodeURIComponent(query)}`,
-            {
-              method: 'GET',
-              headers: {
-                'Authorization': token,
-                'Content-Type': 'application/json'
-              },
-              credentials: 'same-origin'
-            }
-          );
-
-          if (!response.ok) throw new Error(await response.text());
-          return await response.json();
-
-        } catch (error) {
-          console.error("Search failed:", error);
-          return { results: [], query };
-
-        } finally {
-          // Hide loader after search completes
-          loader.style.display = 'none';
-        }
+        return {
+          results,
+          query,
+          stats: {
+            total_entries: allEntries.length,
+            exact_matches: exactMatchesCount,
+            semantic_matches: 0 // not doing ML now, so semantic = 0
+          }
+        };
       }
+
 
       function displaySearchResults(resultObj, searchQuery) {
         const container = document.getElementById('search-results');
@@ -644,11 +824,7 @@
           <div class="search-stats">
             <div class="stat-box">
               <div class="stat-value">${stats.exact_matches}</div>
-              <div class="stat-label">Exact Matches</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-value">${stats.semantic_matches}</div>
-              <div class="stat-label">Semantic Matches</div>
+              <div class="stat-label">Total Matches</div>
             </div>
             <div class="stat-box">
               <div class="stat-value">${stats.total_entries}</div>
@@ -657,7 +833,62 @@
           </div>
         `;
 
-        // Add the search results
+        // ORIGINAL CONTAINER FOR MATCHES
+        // container.innerHTML += `
+        //   <div class="search-stats">
+        //     <div class="stat-box">
+        //       <div class="stat-value">${stats.exact_matches}</div>
+        //       <div class="stat-label">Exact Matches</div>
+        //     </div>
+        //     <div class="stat-box">
+        //       <div class="stat-value">${stats.semantic_matches}</div>
+        //       <div class="stat-label">Semantic Matches</div>
+        //     </div>
+        //     <div class="stat-box">
+        //       <div class="stat-value">${stats.total_entries}</div>
+        //       <div class="stat-label">Total Entries</div>
+        //     </div>
+        //   </div>
+        // `;
+
+        // ORIGINAL - Add the search results
+        // results.forEach(entry => {
+        //   const entryEl = document.createElement('div');
+        //   entryEl.className = `search-result ${entry.match_type}`;
+          
+        //   let highlightedText = highlightMatches(
+        //     entry.description, 
+        //     effectiveQuery, 
+        //     entry.matching_words || []
+        //   );
+          
+        //   entryEl.innerHTML = `
+        //   <div class="entry-header">
+        //     <h3>${formatDateForSearchResults(entry.date)}</h3>
+        //     <button class="expand-toggle" aria-label="Expand entry">
+        //       <img src="icons/top-arrow.svg" class="top-arrow" alt="Collapse">
+        //       <img src="icons/bottom-arrow.svg" class="bottom-arrow" alt="Expand">
+        //     </button>
+        //   </div>
+        //   <div class="entry-content">
+        //     <div class="text-content">
+        //       ${highlightedText.replace(/\n/g, '<br>')}
+        //     </div>
+        //     <div class="fade-out"></div>
+        //     ${entry.imageUrl ? `<img src="${entry.imageUrl}" class="preview-image">` : ''}
+        //   </div>
+        //   <div class="match-details">
+        //     ${entry.matching_words?.length ? `
+        //       <div class="matched-words">
+        //         Related words: ${entry.matching_words.map(w => `<span>${w}</span>`).join(', ')}
+        //       </div>
+        //     ` : ''}
+        //     <span class="match-type ${entry.match_type}">${entry.match_type}</span>
+        //     <span class="score">${entry.score.toFixed(2)}</span>
+        //     <span class="details">${entry.match_details}</span>
+        //   </div>
+        // `;
+
         results.forEach(entry => {
           const entryEl = document.createElement('div');
           entryEl.className = `search-result ${entry.match_type}`;
@@ -689,9 +920,6 @@
                 Related words: ${entry.matching_words.map(w => `<span>${w}</span>`).join(', ')}
               </div>
             ` : ''}
-            <span class="match-type ${entry.match_type}">${entry.match_type}</span>
-            <span class="score">${entry.score.toFixed(2)}</span>
-            <span class="details">${entry.match_details}</span>
           </div>
         `;
 
@@ -711,6 +939,8 @@
           container.appendChild(entryEl);
         });
       }
+
+      
 
       function highlightMatches(text, query, matchingWords) {
         let result = text;
@@ -767,6 +997,334 @@
 
       // Hide clear button initially
       clearButton.style.display = 'none';
+
+      // ===== JOURNAL WRAPPED =====
+
+      function getHabitCount(entries, habitId) {
+        return entries.filter(e => e.habits?.[habitId]?.value === 'yes').length;
+      }
+
+      function pctChange(curr, prev) {
+        if (prev === 0 && curr === 0) return null;
+        if (prev === 0) return 100;
+        return Math.round(((curr - prev) / prev) * 100);
+      }
+
+      function moodScore(mood) {
+        return { excited: 2, good: 1, sad: -1, angry: -2 }[mood] ?? 0;
+      }
+
+      const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+      function filterRange(entries, start, end) {
+        const s = new Date(start); s.setHours(0,0,0,0);
+        const e2 = new Date(end); e2.setHours(23,59,59,999);
+        return entries.filter(en => { const d = new Date(en.date); d.setHours(0,0,0,0); return d >= s && d <= e2; });
+      }
+
+      function moodCorrelation(entries) {
+        const days = Array(7).fill(null).map(() => ({ sum: 0, n: 0 }));
+        entries.forEach(e => {
+          if (!e.mood) return;
+          const idx = new Date(e.date).getDay();
+          days[idx].sum += moodScore(e.mood);
+          days[idx].n++;
+        });
+        let bestDay = -1, bestAvg = -Infinity;
+        days.forEach((d, i) => {
+          if (d.n === 0) return;
+          const avg = d.sum / d.n;
+          if (avg > bestAvg) { bestAvg = avg; bestDay = i; }
+        });
+        return bestDay;
+      }
+
+      function longestStreakForHabit(entries, habitId) {
+        const dates = entries
+          .filter(e => e.habits?.[habitId]?.value === 'yes')
+          .map(e => { const d = new Date(e.date); d.setHours(0,0,0,0); return d; })
+          .sort((a, b) => a - b);
+        let best = 0, cur = 0, prev = null, bestStart = null, curStart = null;
+        dates.forEach(d => {
+          if (!prev || (d - prev) / 86400000 !== 1) { cur = 1; curStart = d; }
+          else cur++;
+          if (cur > best) { best = cur; bestStart = new Date(curStart); }
+          prev = d;
+        });
+        return { count: best, startDate: bestStart };
+      }
+
+      function bestMonthForHabit(entries, habitId) {
+        const months = {};
+        entries.forEach(e => {
+          if (e.habits?.[habitId]?.value !== 'yes') return;
+          const d = new Date(e.date);
+          const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          months[k] = (months[k] || 0) + 1;
+        });
+        let bestK = null, bestN = 0;
+        Object.entries(months).forEach(([k, v]) => { if (v > bestN) { bestN = v; bestK = k; } });
+        if (!bestK) return { count: 0, label: 'N/A' };
+        const [yr, mo] = bestK.split('-').map(Number);
+        return { count: bestN, label: new Date(yr, mo-1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) };
+      }
+
+      function getAllTimeRange(entries) {
+        if (entries.length === 0) return '';
+        const dates = entries.map(e => new Date(e.date)).sort((a,b) => a - b);
+        const fmt = d => d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+        const first = dates[0], last = dates[dates.length - 1];
+        if (first.getFullYear() === last.getFullYear() && first.getMonth() === last.getMonth()) return fmt(first);
+        return `${fmt(first)} - ${fmt(last)}`;
+      }
+
+      function pctLabel(pct) {
+        if (pct === null) return 'No previous data to compare.';
+        if (pct > 0) return `↑ ${pct}% vs last period`;
+        if (pct < 0) return `↓ ${Math.abs(pct)}% vs last period`;
+        return 'Same as last period';
+      }
+
+      function buildWeeklySlides(refStart, entries, hl) {
+        const wkStart = getStartOfWeek(refStart);
+        const wkEnd = new Date(wkStart); wkEnd.setDate(wkStart.getDate() + 6);
+        const pwStart = new Date(wkStart); pwStart.setDate(wkStart.getDate() - 7);
+        const pwEnd = new Date(wkStart); pwEnd.setDate(wkStart.getDate() - 1);
+        const cur = filterRange(entries, wkStart, wkEnd);
+        const prev = filterRange(entries, pwStart, pwEnd);
+        const h1c = getHabitCount(cur,'habit1'), h1p = getHabitCount(prev,'habit1');
+        const h2c = getHabitCount(cur,'habit2'), h2p = getHabitCount(prev,'habit2');
+        const h3c = getHabitCount(cur,'habit3');
+        const h1pct = pctChange(h1c, h1p), h2pct = pctChange(h2c, h2p);
+        const bestDay = moodCorrelation(cur);
+        const enc1 = h1pct === null ? 'No prior data to compare.' : h1pct > 0 ? `↑ ${h1pct}% more than last week — great work! 🎉` : h1pct < 0 ? `↓ ${Math.abs(h1pct)}% less than last week — you've got this! 💪` : 'Same as last week — staying consistent!';
+        const enc2 = h2pct === null ? 'No prior data to compare.' : h2pct > 0 ? `↑ ${h2pct}% more than last week — keep it up! 🎉` : h2pct < 0 ? `↓ ${Math.abs(h2pct)}% less than last week — tomorrow is a new day! 💪` : 'Same as last week — nice consistency!';
+        const h3msg = h3c >= 6 ? 'Near-perfect week! 🌟' : h3c >= 4 ? 'Solid effort this week!' : h3c >= 2 ? 'Keep building that habit!' : 'Room to grow — you can do it!';
+        const dateRange = `${wkStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${wkEnd.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+        const slides = [
+          { type:'intro', title:'YOUR\nWEEK\nIN REVIEW', subtitle:dateRange.toUpperCase(), entryCount:cur.length, bg:'linear-gradient(135deg,#fa9d93 0%,#ffd3ce 100%)' },
+          { type:'stat', emoji:'✅', label:hl.habit1, stat:`${h1c} day${h1c!==1?'s':''}`, subtitle:enc1, bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' },
+        ];
+        if (bestDay >= 0) slides.push({ type:'stat', emoji:'😊', label:'Mood Insight', stat:DAY_NAMES[bestDay], subtitle:`You felt your best on ${DAY_NAMES[bestDay]}s this week.`, bg:'linear-gradient(135deg,#cbe5e4 0%,#a9d8e7 100%)' });
+        slides.push(
+          { type:'stat', emoji:'🙌', label:hl.habit2, stat:`${h2c} day${h2c!==1?'s':''}`, subtitle:enc2, bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' },
+          { type:'stat', emoji:'🌟', label:hl.habit3, stat:`${h3c} out of 7`, subtitle:h3msg, bg:'linear-gradient(135deg,#fff8e1 0%,#ffd3ce 100%)' }
+        );
+        return slides;
+      }
+
+      function buildMonthlySlides(refStart, entries, hl) {
+        const mStart = getStartOfMonth(refStart);
+        const mEnd = new Date(mStart); mEnd.setMonth(mStart.getMonth()+1); mEnd.setDate(0);
+        const pmStart = new Date(mStart); pmStart.setMonth(mStart.getMonth()-1);
+        const pmEnd = new Date(mStart); pmEnd.setDate(0);
+        const cur = filterRange(entries, mStart, mEnd);
+        const prev = filterRange(entries, pmStart, pmEnd);
+        const totalDays = mEnd.getDate();
+        const h1c=getHabitCount(cur,'habit1'), h1p=getHabitCount(prev,'habit1');
+        const h2c=getHabitCount(cur,'habit2'), h2p=getHabitCount(prev,'habit2');
+        const h3c=getHabitCount(cur,'habit3'), h3p=getHabitCount(prev,'habit3');
+        const moodCounts = {good:0,sad:0,angry:0,excited:0};
+        cur.forEach(e => { if (e.mood && e.mood in moodCounts) moodCounts[e.mood]++; });
+        const totalMoods = Object.values(moodCounts).reduce((a,b)=>a+b,0);
+        const positivePct = totalMoods > 0 ? Math.round((moodCounts.good+moodCounts.excited)/totalMoods*100) : 0;
+        const bestDay = moodCorrelation(cur);
+        const h1s=longestStreakForHabit(cur,'habit1'), h2s=longestStreakForHabit(cur,'habit2'), h3s=longestStreakForHabit(cur,'habit3');
+        const topS = [{...h1s,label:hl.habit1},{...h2s,label:hl.habit2},{...h3s,label:hl.habit3}].reduce((b,s)=>s.count>b.count?s:b,{count:0,label:''});
+        const monthLabel = mStart.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+        const slides = [
+          { type:'intro', title:'YOUR\nMONTH\nIN REVIEW', subtitle:monthLabel.toUpperCase(), entryCount:cur.length, bg:'linear-gradient(135deg,#fa9d93 0%,#ffd3ce 100%)' },
+          { type:'stat', emoji:'🌈', label:'Your Mood', stat:`${positivePct}%`, subtitle:`You were in a positive mood ${positivePct}% of logged days.`, bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' },
+          { type:'stat', emoji:'🙌', label:hl.habit2, stat:`${h2c} day${h2c!==1?'s':''}`, subtitle:pctLabel(pctChange(h2c,h2p)), detail:`${Math.round(h2c/totalDays*100)}% of the month`, bg:'linear-gradient(135deg,#cbe5e4 0%,#a9d8e7 100%)' },
+          { type:'stat', emoji:'✅', label:hl.habit1, stat:`${h1c} day${h1c!==1?'s':''}`, subtitle:pctLabel(pctChange(h1c,h1p)), bg:'linear-gradient(135deg,#fff8e1 0%,#ffd3ce 100%)' },
+        ];
+        if (bestDay >= 0) slides.push({ type:'stat', emoji:'😊', label:'Mood Insight', stat:DAY_NAMES[bestDay], subtitle:`Your mood was brightest on ${DAY_NAMES[bestDay]}s this month.`, bg:'linear-gradient(135deg,#ffd3ce 0%,#fa9d93 100%)' });
+        slides.push({ type:'stat', emoji:'🌟', label:hl.habit3, stat:`${h3c} day${h3c!==1?'s':''}`, subtitle:pctLabel(pctChange(h3c,h3p)), bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' });
+        if (topS.count > 0) slides.push({ type:'stat', emoji:'🔥', label:'Longest Streak This Month', stat:`${topS.count} day${topS.count!==1?'s':''}`, subtitle:`${topS.count} consecutive days of "${topS.label}"`, bg:'linear-gradient(135deg,#fff3e0 0%,#f56656 100%)' });
+        return slides;
+      }
+
+      function buildAllTimeSlides(entries, hl) {
+        const total = entries.length;
+        const h1c=getHabitCount(entries,'habit1'), h2c=getHabitCount(entries,'habit2'), h3c=getHabitCount(entries,'habit3');
+        const h1b=bestMonthForHabit(entries,'habit1'), h2b=bestMonthForHabit(entries,'habit2'), h3b=bestMonthForHabit(entries,'habit3');
+        const h1s=longestStreakForHabit(entries,'habit1'), h2s=longestStreakForHabit(entries,'habit2'), h3s=longestStreakForHabit(entries,'habit3');
+        const topS = [{...h1s,label:hl.habit1},{...h2s,label:hl.habit2},{...h3s,label:hl.habit3}].reduce((b,s)=>s.count>b.count?s:b,{count:0,label:''});
+        const strMonth = topS.startDate ? new Date(topS.startDate).toLocaleDateString('en-US',{month:'long',year:'numeric'}) : '';
+        const pct = n => total > 0 ? Math.round(n/total*100) : 0;
+        return [
+          { type:'intro', title:'JOURNAL\nWRAPPED', subtitle:getAllTimeRange(entries), entryCount:total,bg:'linear-gradient(135deg,#fa9d93 0%,#ffd3ce 100%)' },
+          { type:'stat', emoji:'🏆', label:`Best Month — ${hl.habit1}`, stat:`${h1b.count} days`, subtitle:h1b.label, bg:'linear-gradient(135deg,#fff8e1 0%,#ffd3ce 100%)' },
+          { type:'stat', emoji:'🏆', label:`Best Month — ${hl.habit2}`, stat:`${h2b.count} days`, subtitle:h2b.label, bg:'linear-gradient(135deg,#cbe5e4 0%,#a9d8e7 100%)' },
+          { type:'stat', emoji:'🏆', label:`Best Month — ${hl.habit3}`, stat:`${h3b.count} days`, subtitle:h3b.label, bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' },
+          { type:'allstats', emoji:'📊', label:'All-Time Stats', habits:[
+              {name:hl.habit1,count:h1c,total,pct:pct(h1c)},
+              {name:hl.habit2,count:h2c,total,pct:pct(h2c)},
+              {name:hl.habit3,count:h3c,total,pct:pct(h3c)},
+            ], bg:'#ffd3ce' },
+          { type:'chart', emoji:'📈', label:'Your Habits at a Glance', data:{
+              habit1:{label:hl.habit1,count:h1c},
+              habit2:{label:hl.habit2,count:h2c},
+              habit3:{label:hl.habit3,count:h3c},
+            }, bg:'linear-gradient(135deg,#fff8e1 0%,#ffd3ce 100%)' },
+          { type:'stat', emoji:'🔥', label:'All-Time Longest Streak', stat:`${topS.count} day${topS.count!==1?'s':''}`,
+            subtitle: topS.count > 0 ? `${topS.count} consecutive days of "${topS.label}"${strMonth?' starting '+strMonth:''}` : 'Start building your streak today!',
+            bg:'linear-gradient(135deg,#3d1b53 0%,#6d2d97 100%)', dark:true },
+        ];
+      }
+
+      let wrappedSlides = [], wrappedIdx = 0, touchStartX = 0;
+
+      function renderWrappedSlide(slide) {
+        const body = document.getElementById('wrapped-slide-body');
+        const inner = document.getElementById('wrapped-modal-inner');
+        inner.style.background = slide.bg;
+        const textColor = slide.dark ? 'white' : '#3d1b53';
+        body.style.color = textColor;
+        inner.style.color = textColor;
+        body.classList.toggle('ws-intro-active', slide.type === 'intro');
+        let html = '';
+        if (slide.type === 'intro') {
+          html = `<div class="ws-intro-layout">
+            <div class="ws-intro-top">
+              <h1 class="ws-intro-title">${slide.title.replace(/\n/g,'<br>')}</h1>
+              <p class="ws-intro-date">${slide.subtitle}</p>
+            </div>
+            <div class="ws-intro-bottom">
+              <span class="ws-intro-count">${slide.entryCount}</span>
+              <span class="ws-intro-count-label">DAYS IN REVIEW</span>
+            </div>
+          </div>`;
+        } else if (slide.type === 'stat') {
+          html = `<div class="ws-emoji">${slide.emoji}</div><div class="ws-label">${slide.label}</div><div class="ws-big-stat">${slide.stat}</div><p class="ws-subtitle">${slide.subtitle}</p>${slide.detail?`<p class="ws-detail">${slide.detail}</p>`:''}`;
+        } else if (slide.type === 'allstats') {
+          const rows = slide.habits.map(h=>`
+            <div class="ws-allstat-block">
+              <div class="ws-allstat-left">
+                <span class="ws-allstat-count">${h.count}</span>
+                <span class="ws-allstat-days">days</span>
+              </div>
+              <div class="ws-allstat-right">
+                <span class="ws-allstat-name">${h.name}</span>
+                <span class="ws-allstat-pct">${h.pct}%</span>
+              </div>
+            </div>`).join('');
+          html = `<div class="ws-emoji">${slide.emoji}</div><div class="ws-label">${slide.label}</div><div class="ws-allstat-list">${rows}</div>`;
+        } else if (slide.type === 'chart') {
+          html = `<div class="ws-emoji">${slide.emoji}</div><div class="ws-label">${slide.label}</div><div id="wrapped-chart"></div>`;
+        }
+        body.innerHTML = html;
+        if (slide.type === 'chart') renderWrappedBarChart(slide.data);
+      }
+
+      function renderWrappedBarChart(data) {
+        const container = document.getElementById('wrapped-chart');
+        const keys = Object.keys(data);
+        const margin = { top:20, right:16, bottom:70, left:20 };
+        const totalW = Math.min(window.innerWidth - 60, 340);
+        const width = totalW - margin.left - margin.right;
+        const height = 180 - margin.top - margin.bottom;
+        const barColors = ['#f56656','#6d2d97','#a9d8e7'];
+        const svg = d3.select(container).append('svg')
+          .attr('width', totalW).attr('height', height + margin.top + margin.bottom)
+          .style('font-family', "'Poppins', sans-serif")
+          .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+        const x = d3.scaleBand().domain(keys).range([0, width]).padding(0.3);
+        const maxVal = Math.max(...keys.map(k => data[k].count), 1);
+        const y = d3.scaleLinear().domain([0, maxVal]).nice().range([height, 0]);
+        svg.selectAll('rect').data(keys).enter().append('rect')
+          .attr('x', d=>x(d)).attr('y', d=>y(data[d].count))
+          .attr('width', x.bandwidth()).attr('height', d=>height-y(data[d].count))
+          .attr('fill', (d,i)=>barColors[i]).attr('rx', 6);
+        svg.selectAll('text.cnt').data(keys).enter().append('text').attr('class','cnt')
+          .attr('x', d=>x(d)+x.bandwidth()/2).attr('y', d=>y(data[d].count)-5)
+          .attr('text-anchor','middle').attr('fill','#3d1b53').attr('font-size','13px').attr('font-weight','600')
+          .text(d=>data[d].count);
+        keys.forEach((k,i) => {
+          const label = data[k].label;
+          const words = label.split(' ');
+          const mid = Math.ceil(words.length / 2);
+          const xc = x(k) + x.bandwidth()/2;
+          const t = svg.append('text').attr('x',xc).attr('y',height+18).attr('text-anchor','middle').attr('fill','#3d1b53').attr('font-size','13px');
+          t.append('tspan').attr('x',xc).attr('dy',0).text(words.slice(0,mid).join(' '));
+          if (words.length > mid) t.append('tspan').attr('x',xc).attr('dy','1.2em').text(words.slice(mid).join(' '));
+        });
+      }
+
+      function updateWrappedNav() {
+        document.getElementById('wrapped-prev').style.visibility = wrappedIdx > 0 ? 'visible' : 'hidden';
+        const isLast = wrappedIdx >= wrappedSlides.length - 1;
+        document.getElementById('wrapped-next').innerHTML = isLast
+          ? '<img src="icons/check2.svg" alt="Done" style="width:12px;">'
+          : '<img src="icons/right-arrow.svg" alt="Next">';
+        document.getElementById('wrapped-dots').innerHTML = wrappedSlides.map((_,i)=>`<span class="ws-dot${i===wrappedIdx?' active':''}"></span>`).join('');
+      }
+
+      function openWrappedModal(slides) {
+        wrappedSlides = slides; wrappedIdx = 0;
+        document.getElementById('wrapped-modal').style.display = 'flex';
+        renderWrappedSlide(wrappedSlides[0]);
+        updateWrappedNav();
+      }
+
+      function closeWrappedModal() {
+        document.getElementById('wrapped-modal').style.display = 'none';
+      }
+
+      function updateWrappedButton() {
+        const btn = document.getElementById('wrapped-btn');
+        if (!btn) return;
+        if (currentView === 'weekly') btn.textContent = 'Your Week in Review';
+        else if (currentView === 'monthly') btn.textContent = 'Your Month in Review';
+        else btn.textContent = 'Journal Wrapped ✨';
+      }
+
+      document.getElementById('wrapped-btn').addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+        const snap = await getDoc(doc(db, 'habitLabels', user.uid));
+        const hl = snap.exists() ? snap.data() : { habit1:'Habit 1', habit2:'Habit 2', habit3:'Habit 3' };
+        const slides = currentView === 'weekly'
+          ? buildWeeklySlides(new Date(currentStartDate), allEntries, hl)
+          : currentView === 'monthly'
+          ? buildMonthlySlides(new Date(currentStartDate), allEntries, hl)
+          : buildAllTimeSlides(allEntries, hl);
+        openWrappedModal(slides);
+      });
+
+      document.getElementById('wrapped-close').addEventListener('click', closeWrappedModal);
+
+      document.getElementById('wrapped-prev').addEventListener('click', () => {
+        if (wrappedIdx > 0) { wrappedIdx--; renderWrappedSlide(wrappedSlides[wrappedIdx]); updateWrappedNav(); }
+      });
+
+      document.getElementById('wrapped-next').addEventListener('click', () => {
+        if (wrappedIdx < wrappedSlides.length-1) { wrappedIdx++; renderWrappedSlide(wrappedSlides[wrappedIdx]); updateWrappedNav(); }
+        else closeWrappedModal();
+      });
+
+      document.getElementById('wrapped-modal').addEventListener('click', e => {
+        if (e.target.id === 'wrapped-modal') closeWrappedModal();
+      });
+
+      document.getElementById('wrapped-slide-body').addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+      }, {passive:true});
+
+      document.getElementById('wrapped-slide-body').addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) < 50) return;
+        if (dx < 0 && wrappedIdx < wrappedSlides.length-1) { wrappedIdx++; renderWrappedSlide(wrappedSlides[wrappedIdx]); updateWrappedNav(); }
+        else if (dx > 0 && wrappedIdx > 0) { wrappedIdx--; renderWrappedSlide(wrappedSlides[wrappedIdx]); updateWrappedNav(); }
+      }, {passive:true});
+
+      document.addEventListener('keydown', e => {
+        if (document.getElementById('wrapped-modal').style.display !== 'flex') return;
+        if (e.key === 'ArrowRight' && wrappedIdx < wrappedSlides.length-1) { wrappedIdx++; renderWrappedSlide(wrappedSlides[wrappedIdx]); updateWrappedNav(); }
+        else if (e.key === 'ArrowLeft' && wrappedIdx > 0) { wrappedIdx--; renderWrappedSlide(wrappedSlides[wrappedIdx]); updateWrappedNav(); }
+        else if (e.key === 'Escape') closeWrappedModal();
+      });
+
     </script>
 </head>
 
@@ -834,5 +1392,21 @@
       </div>
 
     </div>
+
+    <button class="toggle-buttons" id="wrapped-btn">Your Week in Review</button>
+    
+    <!-- JOURNAL WRAPPED MODAL -->
+    <div id="wrapped-modal">
+      <div id="wrapped-modal-inner">
+        <button id="wrapped-close"><img src="icons/close2.svg" alt="Close"></button>
+        <div id="wrapped-slide-body"></div>
+        <div id="wrapped-nav">
+          <button id="wrapped-prev" class="ws-nav-btn"><img src="icons/left-arrow.svg" alt="Previous"></button>
+          <div id="wrapped-dots"></div>
+          <button id="wrapped-next" class="ws-nav-btn"><img src="icons/right-arrow.svg" alt="Next"></button>
+        </div>
+      </div>
+    </div>
+
 </body>
 </html>

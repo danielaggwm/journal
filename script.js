@@ -522,6 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // —————— AUTH: Signup, Login, Logout ——————
   document.getElementById('signup').addEventListener('click', () => {
     const email = document.getElementById('email').value.trim();
     const pass  = document.getElementById('password').value.trim();
