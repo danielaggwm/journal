@@ -1100,7 +1100,7 @@ body.no-scroll {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin: 2rem auto;
+  margin: auto;
   color: var(--dark-purple);
   padding: 2rem;
 }
