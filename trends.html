@@ -50,11 +50,12 @@
         width: 100%;
         max-width: 420px;
         height: 100dvh;
+        max-height: 100dvh;
         display: flex;
         flex-direction: column;
         overflow: hidden;
       }
-      @media (min-width: 440px) {
+      @media (min-width: 600px) {
         #wrapped-modal-inner { height: 85vh; max-height: 720px; border-radius: 24px; }
       }
       #wrapped-slide-body {
@@ -65,7 +66,7 @@
         justify-content: center;
         padding: 2.5rem 2rem 1.5rem;
         text-align: center;
-        overflow-y: auto;
+        overflow: hidden;
         user-select: none;
         background: transparent;
       }
@@ -1263,12 +1264,16 @@
       function openWrappedModal(slides) {
         wrappedSlides = slides; wrappedIdx = 0;
         document.getElementById('wrapped-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'none';
         renderWrappedSlide(wrappedSlides[0]);
         updateWrappedNav();
       }
 
       function closeWrappedModal() {
         document.getElementById('wrapped-modal').style.display = 'none';
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
       }
 
       function updateWrappedButton() {
@@ -1306,6 +1311,10 @@
       document.getElementById('wrapped-modal').addEventListener('click', e => {
         if (e.target.id === 'wrapped-modal') closeWrappedModal();
       });
+
+      document.getElementById('wrapped-modal').addEventListener('touchmove', e => {
+        e.stopPropagation();
+      }, {passive: false});
 
       document.getElementById('wrapped-slide-body').addEventListener('touchstart', e => {
         touchStartX = e.touches[0].clientX;
