@@ -861,12 +861,16 @@ function setThemeColor(color) {
 }
 
 function updateUIState() {
+  const isMobile = window.innerWidth <= 415;
   if (authModal.style.display === 'flex') {
     setThemeColor('#f4eefe');
+    document.body.style.overflowY = isMobile ? 'hidden' : '';
   } else if (journalModal.style.display === 'flex') {
     setThemeColor('#fffdfc');
+    document.body.style.overflowY = '';
   } else {
     setThemeColor('#ffd3ce');
+    document.body.style.overflowY = isMobile ? 'hidden' : '';
   }
 }
 
