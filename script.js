@@ -558,16 +558,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // —————— AUTH STATE: show/hide UI ——————
   onAuthStateChanged(auth, user => {
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
     if (user) {
       authModal.style.display = 'none';
       menuWrapper.style.display = 'flex';
       document.getElementById('calendar').style.display = 'block';
+      if (themeMeta) themeMeta.setAttribute('content', '#ffd3ce');
       fetchEntriesWithImages(); // Add this line
       renderCalendar();
     } else {
       authModal.style.display = 'flex';
       menuWrapper.style.display = 'none';
       document.getElementById('calendar').style.display = 'none';
+      if (themeMeta) themeMeta.setAttribute('content', '#f4eefe');
       journalEntriesWithImages = []; // Clear when logged out
     }
   });
