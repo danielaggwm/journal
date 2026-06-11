@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#ffd3ce" id="theme-color-meta">
     <title>Trends</title>
     <!-- NOTE: only one theme-color meta allowed — second one was removed -->
@@ -72,7 +72,7 @@
       }
       #wrapped-close {
         position: absolute;
-        top: 1rem; right: 1rem;
+        top: calc(1rem + env(safe-area-inset-top)); right: 1rem;
         background: rgba(255,255,255,0.35);
         border: none; border-radius: 50%;
         width: 36px; height: 36px;
@@ -86,7 +86,7 @@
       #wrapped-close img { width: 10px; height: auto; display: block; }
       #wrapped-nav {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 0.9rem 1.5rem;
+        padding: 0.9rem 1.5rem calc(0.9rem + env(safe-area-inset-bottom));
         background: transparent;
       }
 
