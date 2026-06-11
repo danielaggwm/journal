@@ -870,7 +870,7 @@ function updateUIState() {
     document.documentElement.style.overflowY = locked ? 'hidden' : '';
   };
   if (authModal.style.display === 'flex') {
-    setThemeColor('#f4eefe');
+    setThemeColor('#f4f0fb');
     lockScroll(isMobile);
   } else if (journalModal.style.display === 'flex') {
     setThemeColor('#fffdfc');
