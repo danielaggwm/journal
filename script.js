@@ -869,7 +869,7 @@ function updateUIState() {
     setThemeColor('#fffdfc');
     document.body.style.overflowY = '';
   } else {
-    setThemeColor('#ffd3ce');
+    setThemeColor('#ffe0dd');
     document.body.style.overflowY = isMobile ? 'hidden' : '';
   }
 }

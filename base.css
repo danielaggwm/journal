@@ -16,10 +16,11 @@
   --dark-orange: #b0483c;
   --light-orange: #ffd3ce;
   --medium-orange: #fa9d93;
+  --lightest-orange: #ffe0dd;
 }
 
 html {
-  background-color: #ffd3ce;
+  background-color: #ffe0dd;
 }
 
 body {
@@ -621,7 +622,7 @@ body.no-scroll {
 
 @media (max-width: 410px) {
   body {
-    background: var(--light-orange);
+    background: var(--lightest-orange);
   }
 
   #auth-modal {
