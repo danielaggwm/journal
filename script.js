@@ -864,6 +864,8 @@ function setThemeColor(color) {
 function updateUIState() {
   const isMobile = window.innerWidth <= 480;
   const lockScroll = (locked) => {
+    document.body.style.position = locked ? 'fixed' : '';
+    document.body.style.width = locked ? '100%' : '';
     document.body.style.overflowY = locked ? 'hidden' : '';
     document.documentElement.style.overflowY = locked ? 'hidden' : '';
   };
