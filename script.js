@@ -564,6 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
       menuWrapper.style.display = 'flex';
       document.getElementById('calendar').style.display = 'block';
       if (themeMeta) themeMeta.setAttribute('content', '#ffd3ce');
+      document.documentElement.style.backgroundColor = '#ffd3ce';
       fetchEntriesWithImages(); // Add this line
       renderCalendar();
     } else {
@@ -571,6 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
       menuWrapper.style.display = 'none';
       document.getElementById('calendar').style.display = 'none';
       if (themeMeta) themeMeta.setAttribute('content', '#f4eefe');
+      document.documentElement.style.backgroundColor = '#f4eefe';
       journalEntriesWithImages = []; // Clear when logged out
     }
   });
