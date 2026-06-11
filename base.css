@@ -18,8 +18,10 @@
   --medium-orange: #fa9d93;
 }
 
+ /* iOS safe-area / Dynamic Island / overscroll color */
 html {
-  background-color: #ffd3ce; /* iOS safe-area / Dynamic Island / overscroll color */
+  background-color: linear-gradient(to bottom, var(--light-orange), var(--light-liliac));
+  /* background-color: #ffd3ce; */
 }
 
 body {
