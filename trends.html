@@ -389,10 +389,10 @@
             const filtered = filterEntriesByView(allEntries, currentView, currentStartDate);
 
             const moodCounts = {
+                excited: 0,
                 good: 0,
                 sad: 0,
-                angry: 0,
-                excited: 0
+                angry: 0
             };
 
             filtered.forEach(entry => {
@@ -1125,7 +1125,7 @@
         const h1c=getHabitCount(cur,'habit1'), h1p=getHabitCount(prev,'habit1');
         const h2c=getHabitCount(cur,'habit2'), h2p=getHabitCount(prev,'habit2');
         const h3c=getHabitCount(cur,'habit3'), h3p=getHabitCount(prev,'habit3');
-        const moodCounts = {good:0,sad:0,angry:0,excited:0};
+        const moodCounts = {excited:0,good:0,sad:0,angry:0};
         cur.forEach(e => { if (e.mood && e.mood in moodCounts) moodCounts[e.mood]++; });
         const totalMoods = Object.values(moodCounts).reduce((a,b)=>a+b,0);
         const positivePct = totalMoods > 0 ? Math.round((moodCounts.good+moodCounts.excited)/totalMoods*100) : 0;
