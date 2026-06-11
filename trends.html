@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#ffd3ce" id="theme-color-meta">
     <title>Trends</title>
+    <!-- NOTE: only one theme-color meta allowed — second one was removed -->
     <link rel="stylesheet" href="base.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +13,6 @@
     
     <link rel="icon" type="image/svg" href="icon.svg">
 
-    <meta name="theme-color" content="#f4eefe" id="theme-color-meta">
     <script src="https://d3js.org/d3.v7.min.js"></script>
 
     <style>
@@ -1176,10 +1176,17 @@
 
       let wrappedSlides = [], wrappedIdx = 0, touchStartX = 0;
 
+      function firstColorFromBg(bg) {
+        const m = bg.match(/#[0-9a-fA-F]{6}/);
+        return m ? m[0] : '#ffd3ce';
+      }
+
       function renderWrappedSlide(slide) {
         const body = document.getElementById('wrapped-slide-body');
         const inner = document.getElementById('wrapped-modal-inner');
         inner.style.background = slide.bg;
+        const themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) themeMeta.setAttribute('content', firstColorFromBg(slide.bg));
         const textColor = slide.dark ? 'white' : '#3d1b53';
         body.style.color = textColor;
         inner.style.color = textColor;
@@ -1274,6 +1281,8 @@
         document.getElementById('wrapped-modal').style.display = 'none';
         document.body.style.overflow = '';
         document.body.style.touchAction = '';
+        const themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) themeMeta.setAttribute('content', '#ffd3ce');
       }
 
       function updateWrappedButton() {
