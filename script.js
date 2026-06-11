@@ -557,25 +557,51 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // —————— AUTH STATE: show/hide UI ——————
+  // onAuthStateChanged(auth, user => {
+  //   const themeMeta = document.querySelector('meta[name="theme-color"]');
+  //   if (user) {
+  //     authModal.style.display = 'none';
+  //     menuWrapper.style.display = 'flex';
+  //     document.getElementById('calendar').style.display = 'block';
+  //     // if (themeMeta) themeMeta.setAttribute('content', '#ffd3ce');
+  //     // document.documentElement.style.backgroundColor = '#ffd3ce';
+  //     fetchEntriesWithImages(); // Add this line
+  //     renderCalendar();
+  //   } else {
+  //     authModal.style.display = 'flex';
+  //     menuWrapper.style.display = 'none';
+  //     document.getElementById('calendar').style.display = 'none';
+  //     // if (themeMeta) themeMeta.setAttribute('content', '#f4eefe');
+  //     // document.documentElement.style.backgroundColor = '#f4eefe';
+  //     journalEntriesWithImages = []; // Clear when logged out
+  //   }
+  // });
+
   onAuthStateChanged(auth, user => {
-    const themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (user) {
-      authModal.style.display = 'none';
-      menuWrapper.style.display = 'flex';
-      document.getElementById('calendar').style.display = 'block';
-      if (themeMeta) themeMeta.setAttribute('content', '#ffd3ce');
-      document.documentElement.style.backgroundColor = '#ffd3ce';
-      fetchEntriesWithImages(); // Add this line
-      renderCalendar();
-    } else {
-      authModal.style.display = 'flex';
-      menuWrapper.style.display = 'none';
-      document.getElementById('calendar').style.display = 'none';
-      if (themeMeta) themeMeta.setAttribute('content', '#f4eefe');
-      document.documentElement.style.backgroundColor = '#f4eefe';
-      journalEntriesWithImages = []; // Clear when logged out
-    }
-  });
+  if (user) {
+    authModal.style.display = 'none';
+
+    document.body.classList.remove('auth-open');
+    setThemeColor('#ffe0dd');
+
+    menuWrapper.style.display = 'flex';
+    document.getElementById('calendar').style.display = 'block';
+
+    fetchEntriesWithImages();
+    renderCalendar();
+
+  } else {
+    authModal.style.display = 'flex';
+
+    document.body.classList.add('auth-open');
+    setThemeColor('#f4f0fb');
+
+    menuWrapper.style.display = 'none';
+    document.getElementById('calendar').style.display = 'none';
+
+    journalEntriesWithImages = [];
+  }
+});
   
 
   // —————— JOURNAL MODAL: open/close ——————
@@ -854,11 +880,22 @@ const themeMeta = document.querySelector('meta[name="theme-color"]');
 const authModal = document.getElementById('auth-modal');
 const journalModal = document.getElementById('journal-modal');
 
+// function setThemeColor(color) {
+//   if (themeMeta) {
+//     themeMeta.setAttribute("content", color);
+//   }
+//   document.documentElement.style.backgroundColor = color;
+// }
+
 function setThemeColor(color) {
+  const themeMeta = document.getElementById("theme-color-meta");
+
   if (themeMeta) {
     themeMeta.setAttribute("content", color);
   }
+
   document.documentElement.style.backgroundColor = color;
+  document.body.style.backgroundColor = color;
 }
 
 function updateUIState() {

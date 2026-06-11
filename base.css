@@ -19,8 +19,22 @@
   --lightest-orange: #ffe0dd;
 }
 
-html {
+/* html {
   background-color: #ffe0dd;
+} */
+
+html,
+body {
+  min-height: 100%;
+}
+
+body.auth-open,
+body.auth-open html {
+  background-color: #f4f0fb;
+}
+
+body.auth-open {
+  background-color: #f4f0fb;
 }
 
 body {
