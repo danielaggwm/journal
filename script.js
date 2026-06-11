@@ -861,7 +861,7 @@ function setThemeColor(color) {
 }
 
 function updateUIState() {
-  const isMobile = window.innerWidth <= 415;
+  const isMobile = window.innerWidth <= 410;
   if (authModal.style.display === 'flex') {
     setThemeColor('#f4eefe');
     document.body.style.overflowY = isMobile ? 'hidden' : '';

@@ -27,7 +27,7 @@ body {
     min-height: 100vh;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
-    background: linear-gradient(to bottom, var(--light-orange), var(--light-liliac)) !important;
+    background: linear-gradient(to bottom, var(--light-orange), var(--light-liliac));
     font-family: "Poppins", sans-serif;
   }
   
@@ -620,6 +620,14 @@ body.no-scroll {
 
 
 @media (max-width: 410px) {
+  body {
+    background: var(--light-orange);
+  }
+
+  #auth-modal {
+    background: var(--super-lilac);
+  }
+
   .modal {
     align-items: flex-start !important;
     overflow-y: scroll !important;
@@ -635,7 +643,7 @@ body.no-scroll {
     border-radius: 0;
     box-shadow: none;
     padding-top: 3rem;
-    
+
   }
 }
 
