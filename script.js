@@ -858,19 +858,24 @@ function setThemeColor(color) {
   if (themeMeta) {
     themeMeta.setAttribute("content", color);
   }
+  document.documentElement.style.backgroundColor = color;
 }
 
 function updateUIState() {
-  const isMobile = window.innerWidth <= 410;
+  const isMobile = window.innerWidth <= 480;
+  const lockScroll = (locked) => {
+    document.body.style.overflowY = locked ? 'hidden' : '';
+    document.documentElement.style.overflowY = locked ? 'hidden' : '';
+  };
   if (authModal.style.display === 'flex') {
     setThemeColor('#f4eefe');
-    document.body.style.overflowY = isMobile ? 'hidden' : '';
+    lockScroll(isMobile);
   } else if (journalModal.style.display === 'flex') {
     setThemeColor('#fffdfc');
-    document.body.style.overflowY = '';
+    lockScroll(false);
   } else {
     setThemeColor('#ffe0dd');
-    document.body.style.overflowY = isMobile ? 'hidden' : '';
+    lockScroll(isMobile);
   }
 }
 
