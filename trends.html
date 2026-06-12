@@ -989,7 +989,7 @@
         ];
         if (topS.count > 0) slides.push({ type:'monthly-stat', label:'Longest Streak', stat:`${topS.count}`, unit:`day${topS.count!==1?'s':''}`, subtitle:`${topS.count} consecutive days of "${topS.label}"`, bg: '#ffd3ce' });
         if (bestDay >= 0) slides.push({ type:'monthly-stat', compact:true, label:'Mood Insight', stat:DAY_NAMES[bestDay], subtitle:`Your mood was brightest on ${DAY_NAMES[bestDay]}s this month. 😊`, bg:'linear-gradient(135deg,#e8dff8 0%,#d4c8e8 100%)' });
-        slides.push({ type:'monthly-mood', stat:positivePct, subtitle:`Positive mood on ${positivePct}% of logged days`, bg:'#3d1b53', dark:true });
+        slides.push({ type:'monthly-mood', stat:positivePct, subtitle:`Positive mood on ${positivePct}% of logged days`, bg:'#ffefc9' });
         return slides;
       }
 
@@ -1003,22 +1003,18 @@
         const pct = n => total > 0 ? Math.round(n/total*100) : 0;
         return [
           { type:'intro', title:'JOURNAL\nWRAPPED', subtitle:getAllTimeRange(entries), entryCount:total,bg:'linear-gradient(135deg,#fa9d93 0%,#ffd3ce 100%)' },
-          { type:'stat', emoji:'🏆', label:`Best Month — ${hl.habit1}`, stat:`${h1b.count} days`, subtitle:h1b.label, bg:'linear-gradient(135deg,#fff8e1 0%,#ffd3ce 100%)' },
-          { type:'stat', emoji:'🏆', label:`Best Month — ${hl.habit2}`, stat:`${h2b.count} days`, subtitle:h2b.label, bg:'linear-gradient(135deg,#cbe5e4 0%,#a9d8e7 100%)' },
-          { type:'stat', emoji:'🏆', label:`Best Month — ${hl.habit3}`, stat:`${h3b.count} days`, subtitle:h3b.label, bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' },
+          { type:'stat', label:`Best Month — ${hl.habit1}`, stat:`${h1b.count} days`, subtitle:h1b.label, subtitlePill:true, bg:'linear-gradient(135deg,#fff8e1 0%,#ffd3ce 100%)' },
+          { type:'stat', label:`Best Month — ${hl.habit2}`, stat:`${h2b.count} days`, subtitle:h2b.label, subtitlePill:true, bg:'linear-gradient(135deg,#d8e0d5 0%,#c4cfc0 100%)' },
+          { type:'stat', label:`Best Month — ${hl.habit3}`, stat:`${h3b.count} days`, subtitle:h3b.label, subtitlePill:true, bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' },
           { type:'allstats', emoji:'📊', label:'All-Time Stats', habits:[
               {name:hl.habit1,count:h1c,total,pct:pct(h1c)},
               {name:hl.habit2,count:h2c,total,pct:pct(h2c)},
               {name:hl.habit3,count:h3c,total,pct:pct(h3c)},
             ], bg:'#ffd3ce' },
-          { type:'chart', emoji:'📈', label:'Your Habits at a Glance', data:{
-              habit1:{label:hl.habit1,count:h1c},
-              habit2:{label:hl.habit2,count:h2c},
-              habit3:{label:hl.habit3,count:h3c},
-            }, bg:'linear-gradient(135deg,#fff8e1 0%,#ffd3ce 100%)' },
-          { type:'stat', emoji:'🔥', label:'All-Time Longest Streak', stat:`${topS.count} day${topS.count!==1?'s':''}`,
+
+          { type:'stat', label:'All-Time Longest Streak', stat:`${topS.count} day${topS.count!==1?'s':''}`,
             subtitle: topS.count > 0 ? `${topS.count} consecutive days of "${topS.label}"${strMonth?' starting '+strMonth:''}` : 'Start building your streak today!',
-            bg:'linear-gradient(135deg,#3d1b53 0%,#6d2d97 100%)', dark:true },
+            bg:'linear-gradient(135deg,#f4eefe 0%,#e8dff8 100%)' },
         ];
       }
 
@@ -1113,20 +1109,27 @@
             ${slide.detail ? `<p class="ws-habit-subtitle" style="opacity:0.55;margin-top:0.2rem">${slide.detail}</p>` : ''}
           </div>`;
         } else if (slide.type === 'stat') {
-          html = `<div class="ws-emoji">${slide.emoji}</div><div class="ws-label">${slide.label}</div><div class="ws-big-stat">${slide.stat}</div><p class="ws-subtitle">${slide.subtitle}</p>${slide.detail?`<p class="ws-detail">${slide.detail}</p>`:''}`;
+          const subtitleHtml = slide.subtitlePill
+            ? `<div class="ws-intro-pill">${slide.subtitle}</div>`
+            : `<p class="ws-subtitle">${slide.subtitle}</p>`;
+          html = `${slide.emoji ? `<div class="ws-emoji">${slide.emoji}</div>` : ''}<div class="ws-label">${slide.label}</div><div class="ws-big-stat">${slide.stat}</div>${subtitleHtml}${slide.detail?`<p class="ws-detail">${slide.detail}</p>`:''}`;
+
         } else if (slide.type === 'allstats') {
           const rows = slide.habits.map(h=>`
-            <div class="ws-allstat-block">
-              <div class="ws-allstat-left">
-                <span class="ws-allstat-count">${h.count}</span>
-                <span class="ws-allstat-days">days</span>
-              </div>
-              <div class="ws-allstat-right">
-                <span class="ws-allstat-name">${h.name}</span>
+            <div class="ws-allstat-row">
+              <div class="ws-allstat-habit-name">${h.name.toUpperCase()}</div>
+              <div class="ws-allstat-mid-row">
+                <div class="ws-allstat-count-group">
+                  <span class="ws-allstat-count">${h.count}</span>
+                  <span class="ws-allstat-days">days</span>
+                </div>
                 <span class="ws-allstat-pct">${h.pct}%</span>
               </div>
+              <div class="ws-allstat-bar-track">
+                <div class="ws-allstat-bar-fill" style="width:${h.pct}%"></div>
+              </div>
             </div>`).join('');
-          html = `<div class="ws-emoji">${slide.emoji}</div><div class="ws-label">${slide.label}</div><div class="ws-allstat-list">${rows}</div>`;
+          html = `<div class="ws-label">${slide.label}</div><div class="ws-allstat-list">${rows}</div>`;
         } else if (slide.type === 'chart') {
           html = `<div class="ws-emoji">${slide.emoji}</div><div class="ws-label">${slide.label}</div><div id="wrapped-chart"></div>`;
         }

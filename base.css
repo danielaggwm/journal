@@ -1831,18 +1831,19 @@ mark.semantic-match {
       .ws-emoji { font-size: 3.5rem; margin-bottom: 0.75rem; line-height: 1; }
       .ws-title { font-size: 1.9rem; font-weight: 600; margin: 0 0 0.5rem; font-family: 'Poppins', sans-serif; }
       .ws-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; opacity: 0.65; margin-bottom: 0.35rem; font-family: 'Poppins', sans-serif; }
-      .ws-big-stat { font-size: 3.6rem; font-weight: 600; margin: 0.2rem 0 0.4rem; line-height: 1; font-family: 'Poppins', sans-serif; }
+      .ws-big-stat { font-size: 3.6rem; font-weight: 600; margin: 0.2rem 0 0.4rem; line-height: 1.5; font-family: 'Poppins', sans-serif; }
       .ws-subtitle { font-size: 1rem; opacity: 0.82; margin: 0.25rem 0 0; line-height: 1.4; max-width: 300px; font-family: 'Poppins', sans-serif; }
       .ws-detail { font-size: 0.82rem; opacity: 0.65; margin-top: 0.35rem; font-family: 'Poppins', sans-serif; }
-      .ws-allstat-list { display: flex; flex-direction: column; width: 100%; max-width: 320px; margin-top: 1rem; }
-      .ws-allstat-block { display: flex; align-items: center; gap: 0.85rem; padding: 0.65rem 0; border-bottom: 1px solid rgba(61,27,83,0.15); }
-      .ws-allstat-block:last-child { border-bottom: none; }
-      .ws-allstat-left { display: flex; align-items: baseline; gap: 0.3rem; flex-shrink: 0; }
-      .ws-allstat-count { font-size: 2rem; font-weight: 700; line-height: 1; color: #3d1b53; font-family: 'Poppins', sans-serif; }
-      .ws-allstat-days { font-size: 0.82rem; font-weight: 500; color: #3d1b53; font-family: 'Poppins', sans-serif; opacity: 0.7; }
-      .ws-allstat-right { display: flex; flex-direction: column; align-items: flex-end; text-align: right; margin-left: auto; }
-      .ws-allstat-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; font-family: 'Poppins', sans-serif; }
-      .ws-allstat-pct { font-size: 0.88rem; font-weight: 600; color: #3d1b53; font-family: 'Poppins', sans-serif; }
+      .ws-allstat-list { display: flex; flex-direction: column; width: 100%; max-width: 320px; margin-top: 0.75rem; gap: 0.2rem; }
+      .ws-allstat-row { display: flex; flex-direction: column; padding: 0.55rem 0 0.7rem; }
+      .ws-allstat-habit-name { text-align: left; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; font-family: 'Poppins', sans-serif; color: #3d1b53; margin-bottom: 0.05rem; }
+      .ws-allstat-mid-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.45rem; }
+      .ws-allstat-count-group { display: flex; align-items: baseline; gap: 0.3rem; }
+      .ws-allstat-count { font-size: 3rem; font-weight: 700; line-height: 1; color: #3d1b53; font-family: 'Poppins', sans-serif; }
+      .ws-allstat-days { font-size: 0.85rem; font-weight: 500; color: #3d1b53; font-family: 'Poppins', sans-serif; opacity: 0.65; }
+      .ws-allstat-pct { font-size: 2.6rem; font-weight: 700; line-height: 1; color: #3d1b53; font-family: 'Poppins', sans-serif; }
+      .ws-allstat-bar-track { width: 100%; height: 5px; background: rgba(61,27,83,0.15); border-radius: 999px; overflow: hidden; }
+      .ws-allstat-bar-fill { height: 100%; background: #3d1b53; border-radius: 999px; }
       #wrapped-chart { margin-top: 0.5rem; }
 
       /* Intro slide — new pill design */
@@ -1940,13 +1941,12 @@ mark.semantic-match {
         color: var(--dark-purple);
         font-family: 'Poppins', sans-serif;
         opacity: 0.7;
-        margin-top: 0;
+        margin-top: -1rem;
       }
       .ws-habit-subtitle {
         font-size: 0.88rem;
         color: var(--dark-purple);
         font-family: 'Poppins', sans-serif;
-        /* margin: 0.6rem 0 0; */
         margin: 0.6rem 1rem 0 1rem;
         line-height: 1.45;
         opacity: 0.85;
@@ -2026,14 +2026,14 @@ mark.semantic-match {
         text-transform: uppercase;
         letter-spacing: 0.1em;
         font-family: 'Poppins', sans-serif;
-        color: rgba(255,255,255,0.6);
+        color: rgba(61,27,83,0.6);
       }
       .ws-mood-bar-pct {
         font-size: 5.5rem;
         font-weight: 700;
         line-height: 1;
         font-family: 'Poppins', sans-serif;
-        color: #ffefc9;
+        color: #3d1b53;
         margin: 0.1rem 0;
       }
       .ws-mood-bar-wrap {
@@ -2044,13 +2044,13 @@ mark.semantic-match {
       .ws-mood-bar-track {
         width: 100%;
         height: 10px;
-        background: rgba(255,255,255,0.15);
+        background: rgba(61,27,83,0.15);
         border-radius: 5px;
         overflow: hidden;
       }
       .ws-mood-bar-fill {
         height: 100%;
-        background: #ffefc9;
+        background: #3d1b53;
         border-radius: 5px;
       }
       .ws-mood-bar-ends {
@@ -2059,11 +2059,11 @@ mark.semantic-match {
         margin-top: 0.35rem;
         font-size: 0.72rem;
         font-family: 'Poppins', sans-serif;
-        color: rgba(255,255,255,0.4);
+        color: rgba(61,27,83,0.4);
       }
       .ws-mood-bar-subtitle {
         font-size: 0.92rem;
-        color: rgba(255,255,255,0.65);
+        color: rgba(61,27,83,0.65);
         font-family: 'Poppins', sans-serif;
         text-align: center;
         max-width: 260px;
