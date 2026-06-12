@@ -15,165 +15,6 @@
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
 
-    <style>
-      #wrapped-btn {
-        display: block;
-        margin: auto;
-        background-color: var(--medium-orange);
-        border: 1px dashed var(--dark-purple);
-        color: var(--dark-purple);
-        font-family: 'Poppins', sans-serif;
-        font-size: 0.9rem;
-        padding: 8px 16px;
-        border-radius: 40px;
-        cursor: pointer;
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
-
-      #wrapped-btn:hover {
-        background-color: var(--orange);
-        color: var(--dark-purple);
-        border: 1px solid var(--dark-purple);
-      }
-
-      #wrapped-modal {
-        display: none;
-        position: fixed;
-        inset: 0;
-        z-index: 1000;
-        background: rgba(0,0,0,0.6);
-        align-items: center;
-        justify-content: center;
-      }
-      #wrapped-modal-inner {
-        position: relative;
-        width: 100%;
-        max-width: 420px;
-        height: 100dvh;
-        max-height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      @media (min-width: 600px) {
-        #wrapped-modal-inner { height: 85vh; max-height: 720px; border-radius: 24px; }
-      }
-      #wrapped-slide-body {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2.5rem 2rem 1.5rem;
-        text-align: center;
-        overflow: hidden;
-        user-select: none;
-        background: transparent;
-      }
-      #wrapped-close {
-        position: absolute;
-        top: calc(1rem + env(safe-area-inset-top)); right: 1rem;
-        background: rgba(255,255,255,0.35);
-        border: none; border-radius: 50%;
-        width: 36px; height: 36px;
-        cursor: pointer; padding: 0;
-        display: flex; align-items: center; justify-content: center;
-        z-index: 10;
-      }
-
-      #wrapped-close:hover {background: rgba(255,255,255,0.55); }
-
-      #wrapped-close img { width: 10px; height: auto; display: block; }
-      #wrapped-nav {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 0.9rem 1.5rem calc(0.9rem + env(safe-area-inset-bottom));
-        background: transparent;
-      }
-
-      .ws-nav-btn {
-        background: rgba(255,255,255,0.35); border: none; border-radius: 50%;
-        width: 40px; height: 40px; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        transition: background 0.2s;
-        padding: 0;
-      }
-      .ws-nav-btn img { width: 10px; height: auto; display: block; }
-      .ws-nav-btn:hover { background: rgba(255,255,255,0.55); }
-      #wrapped-dots { display: flex; gap: 6px; align-items: center; }
-      .ws-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(61,27,83,0.25); transition: all 0.2s; }
-      .ws-dot.active { background: #3d1b53; transform: scale(1.35); }
-
-      /* intro slide layout */
-      #wrapped-slide-body.ws-intro-active {
-        justify-content: flex-start;
-        align-items: stretch;
-        padding: 2.5rem 2rem 1.5rem;
-      }
-      .ws-intro-layout {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: flex-start;
-        text-align: left;
-        width: 100%;
-      }
-      .ws-intro-title {
-        font-size: 3rem;
-        font-weight: 700;
-        line-height: 1.05;
-        margin: 1.5rem 0.8rem 0.8rem;
-        font-family: 'Poppins', sans-serif;
-        color: var(--dark-purple);
-      }
-      .ws-intro-date {
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        margin-left: 0.8rem;
-        color: var(--dark-purple);
-        font-family: 'Poppins', sans-serif;
-      }
-      .ws-intro-bottom {
-        display: flex;
-        align-items: baseline;
-        gap: 0.4rem;
-        align-self: flex-end;
-      }
-      .ws-intro-count {
-        font-size: 2.8rem;
-        font-weight: 700;
-        line-height: 1;
-        color: var(--dark-purple);
-        font-family: 'Poppins', sans-serif;
-      }
-      .ws-intro-count-label {
-        font-size: 0.78rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--dark-purple);
-        font-family: 'Poppins', sans-serif;
-      }
-
-      .ws-emoji { font-size: 3.5rem; margin-bottom: 0.75rem; line-height: 1; }
-      .ws-title { font-size: 1.9rem; font-weight: 600; margin: 0 0 0.5rem; font-family: 'Poppins', sans-serif; }
-      .ws-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; opacity: 0.65; margin-bottom: 0.35rem; font-family: 'Poppins', sans-serif; }
-      .ws-big-stat { font-size: 3.6rem; font-weight: 600; margin: 0.2rem 0 0.4rem; line-height: 1; font-family: 'Poppins', sans-serif; }
-      .ws-subtitle { font-size: 1rem; opacity: 0.82; margin: 0.25rem 0 0; line-height: 1.4; max-width: 300px; font-family: 'Poppins', sans-serif; }
-      .ws-detail { font-size: 0.82rem; opacity: 0.65; margin-top: 0.35rem; font-family: 'Poppins', sans-serif; }
-      .ws-allstat-list { display: flex; flex-direction: column; width: 100%; max-width: 320px; margin-top: 1rem; }
-      .ws-allstat-block { display: flex; align-items: center; gap: 0.85rem; padding: 0.65rem 0; border-bottom: 1px solid rgba(61,27,83,0.15); }
-      .ws-allstat-block:last-child { border-bottom: none; }
-      .ws-allstat-left { display: flex; align-items: baseline; gap: 0.3rem; flex-shrink: 0; }
-      .ws-allstat-count { font-size: 2rem; font-weight: 700; line-height: 1; color: #3d1b53; font-family: 'Poppins', sans-serif; }
-      .ws-allstat-days { font-size: 0.82rem; font-weight: 500; color: #3d1b53; font-family: 'Poppins', sans-serif; opacity: 0.7; }
-      .ws-allstat-right { display: flex; flex-direction: column; align-items: flex-end; text-align: right; margin-left: auto; }
-      .ws-allstat-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; font-family: 'Poppins', sans-serif; }
-      .ws-allstat-pct { font-size: 0.88rem; font-weight: 600; color: #3d1b53; font-family: 'Poppins', sans-serif; }
-      #wrapped-chart { margin-top: 0.5rem; }
-    </style>
-
     <script type="module">
         let selectedHabitId = "habit1"; 
 
@@ -1101,16 +942,23 @@
         const enc1 = h1pct === null ? 'No prior data to compare.' : h1pct > 0 ? `↑ ${h1pct}% more than last week — great work! 🎉` : h1pct < 0 ? `↓ ${Math.abs(h1pct)}% less than last week — you've got this! 💪` : 'Same as last week — staying consistent!';
         const enc2 = h2pct === null ? 'No prior data to compare.' : h2pct > 0 ? `↑ ${h2pct}% more than last week — keep it up! 🎉` : h2pct < 0 ? `↓ ${Math.abs(h2pct)}% less than last week — tomorrow is a new day! 💪` : 'Same as last week — nice consistency!';
         const h3msg = h3c >= 6 ? 'Near-perfect week! 🌟' : h3c >= 4 ? 'Solid effort this week!' : h3c >= 2 ? 'Keep building that habit!' : 'Room to grow — you can do it!';
-        const dateRange = `${wkStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${wkEnd.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+        const dateRange = `${wkStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${wkEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+        function getHabitDays(habitId) {
+          const days = Array(7).fill(false);
+          cur.forEach(e => {
+            if (e.habits?.[habitId]?.value === 'yes') {
+              const dayIdx = (new Date(e.date).getDay() + 6) % 7;
+              days[dayIdx] = true;
+            }
+          });
+          return days;
+        }
         const slides = [
-          { type:'intro', title:'YOUR\nWEEK\nIN REVIEW', subtitle:dateRange.toUpperCase(), entryCount:cur.length, bg:'linear-gradient(135deg,#fa9d93 0%,#ffd3ce 100%)' },
-          { type:'stat', emoji:'✅', label:hl.habit1, stat:`${h1c} day${h1c!==1?'s':''}`, subtitle:enc1, bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' },
+          { type:'intro', smallHeader:'YOUR WEEK', title:'WEEK IN REVIEW', subtitle:dateRange, entryCount:cur.length, bg:'linear-gradient(135deg,#fa9d93 0%,#ffd3ce 100%)' },
+          { type:'weekly-habit', label:hl.habit1, stat:h1c, subtitle:enc1, days:getHabitDays('habit1'), bg:'linear-gradient(135deg,#f4eefe 0%,#e2d8f5 100%)' },
+          { type:'weekly-habit', label:hl.habit2, stat:h2c, subtitle:enc2, days:getHabitDays('habit2'), bg:'linear-gradient(135deg,#ffd3ce 0%,#ffe8e5 100%)' },
+          { type:'weekly-habit', label:hl.habit3, stat:h3c, subtitle:h3msg, days:getHabitDays('habit3'), bg:'linear-gradient(135deg,#fff8e1 0%,#ffefc9 100%)' },
         ];
-        if (bestDay >= 0) slides.push({ type:'stat', emoji:'😊', label:'Mood Insight', stat:DAY_NAMES[bestDay], subtitle:`You felt your best on ${DAY_NAMES[bestDay]}s this week.`, bg:'linear-gradient(135deg,#cbe5e4 0%,#a9d8e7 100%)' });
-        slides.push(
-          { type:'stat', emoji:'🙌', label:hl.habit2, stat:`${h2c} day${h2c!==1?'s':''}`, subtitle:enc2, bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' },
-          { type:'stat', emoji:'🌟', label:hl.habit3, stat:`${h3c} out of 7`, subtitle:h3msg, bg:'linear-gradient(135deg,#fff8e1 0%,#ffd3ce 100%)' }
-        );
         return slides;
       }
 
@@ -1134,14 +982,14 @@
         const topS = [{...h1s,label:hl.habit1},{...h2s,label:hl.habit2},{...h3s,label:hl.habit3}].reduce((b,s)=>s.count>b.count?s:b,{count:0,label:''});
         const monthLabel = mStart.toLocaleDateString('en-US',{month:'long',year:'numeric'});
         const slides = [
-          { type:'intro', title:'YOUR\nMONTH\nIN REVIEW', subtitle:monthLabel.toUpperCase(), entryCount:cur.length, bg:'linear-gradient(135deg,#fa9d93 0%,#ffd3ce 100%)' },
-          { type:'stat', emoji:'🌈', label:'Your Mood', stat:`${positivePct}%`, subtitle:`You were in a positive mood ${positivePct}% of logged days.`, bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' },
-          { type:'stat', emoji:'🙌', label:hl.habit2, stat:`${h2c} day${h2c!==1?'s':''}`, subtitle:pctLabel(pctChange(h2c,h2p)), detail:`${Math.round(h2c/totalDays*100)}% of the month`, bg:'linear-gradient(135deg,#cbe5e4 0%,#a9d8e7 100%)' },
-          { type:'stat', emoji:'✅', label:hl.habit1, stat:`${h1c} day${h1c!==1?'s':''}`, subtitle:pctLabel(pctChange(h1c,h1p)), bg:'linear-gradient(135deg,#fff8e1 0%,#ffd3ce 100%)' },
+          { type:'intro', smallHeader:'YOUR MONTH', title:'MONTH IN REVIEW', subtitle:monthLabel, entryCount:cur.length, bg:'linear-gradient(135deg,#fa9d93 0%,#ffd3ce 100%)' },
+          { type:'monthly-habit-chart', label:hl.habit1, count:h1c, total:cur.length, arcColor:'#6d2d97', subtitle:pctLabel(pctChange(h1c,h1p)), bg:'linear-gradient(135deg,#f4eefe 0%,#e2d8f5 100%)' },
+          { type:'monthly-habit-chart', label:hl.habit2, count:h2c, total:cur.length, arcColor:'#ff6b6b', subtitle:pctLabel(pctChange(h2c,h2p)), bg:'linear-gradient(135deg,#ffd3ce 0%,#ffe8e5 100%)' },
+          { type:'monthly-habit-chart', label:hl.habit3, count:h3c, total:cur.length, arcColor:'#4f5bcf', subtitle:pctLabel(pctChange(h3c,h3p)), bg:'linear-gradient(135deg,#fff8e1 0%,#ffefc9 100%)' },
         ];
-        if (bestDay >= 0) slides.push({ type:'stat', emoji:'😊', label:'Mood Insight', stat:DAY_NAMES[bestDay], subtitle:`Your mood was brightest on ${DAY_NAMES[bestDay]}s this month.`, bg:'linear-gradient(135deg,#ffd3ce 0%,#fa9d93 100%)' });
-        slides.push({ type:'stat', emoji:'🌟', label:hl.habit3, stat:`${h3c} day${h3c!==1?'s':''}`, subtitle:pctLabel(pctChange(h3c,h3p)), bg:'linear-gradient(135deg,#f4eefe 0%,#cbc6db 100%)' });
-        if (topS.count > 0) slides.push({ type:'stat', emoji:'🔥', label:'Longest Streak This Month', stat:`${topS.count} day${topS.count!==1?'s':''}`, subtitle:`${topS.count} consecutive days of "${topS.label}"`, bg:'linear-gradient(135deg,#fff3e0 0%,#f56656 100%)' });
+        if (topS.count > 0) slides.push({ type:'monthly-stat', label:'Longest Streak', stat:`${topS.count}`, unit:`day${topS.count!==1?'s':''}`, subtitle:`${topS.count} consecutive days of "${topS.label}"`, bg: '#ffd3ce' });
+        if (bestDay >= 0) slides.push({ type:'monthly-stat', compact:true, label:'Mood Insight', stat:DAY_NAMES[bestDay], subtitle:`Your mood was brightest on ${DAY_NAMES[bestDay]}s this month. 😊`, bg:'linear-gradient(135deg,#e8dff8 0%,#d4c8e8 100%)' });
+        slides.push({ type:'monthly-mood', stat:positivePct, subtitle:`Positive mood on ${positivePct}% of logged days`, bg:'#3d1b53', dark:true });
         return slides;
       }
 
@@ -1191,17 +1039,78 @@
         body.style.color = textColor;
         inner.style.color = textColor;
         body.classList.toggle('ws-intro-active', slide.type === 'intro');
+        body.classList.toggle('ws-habit-active', slide.type === 'weekly-habit' || slide.type === 'monthly-stat');
         let html = '';
         if (slide.type === 'intro') {
           html = `<div class="ws-intro-layout">
             <div class="ws-intro-top">
-              <h1 class="ws-intro-title">${slide.title.replace(/\n/g,'<br>')}</h1>
+              ${slide.smallHeader ? `<p class="ws-intro-small-label">${slide.smallHeader}</p>` : ''}
+              <h1 class="ws-intro-title">${slide.title}</h1>
               <p class="ws-intro-date">${slide.subtitle}</p>
             </div>
             <div class="ws-intro-bottom">
-              <span class="ws-intro-count">${slide.entryCount}</span>
-              <span class="ws-intro-count-label">DAYS IN REVIEW</span>
+              <span class="ws-intro-pill">${slide.entryCount} DAYS LOGGED</span>
             </div>
+          </div>`;
+        } else if (slide.type === 'weekly-habit') {
+          const boxes = slide.days.map(done => `<div class="ws-habit-box${done?' done':''}">${done ? '<img src="icons/check.svg" alt="">' : ''}</div>`).join('');
+          html = `<div class="ws-weekly-habit-layout">
+            <div class="ws-habit-header-block">
+              <div class="ws-habit-question">${slide.label.toUpperCase()}</div>
+            </div>
+            <div class="ws-habit-big-number">${slide.stat}</div>
+            <div class="ws-habit-days-word">DAYS</div>
+            <p class="ws-habit-subtitle">${slide.subtitle}</p>
+            <div class="ws-habit-checkboxes">${boxes}</div>
+          </div>`;
+        } else if (slide.type === 'mood-insight') {
+          html = `<div class="ws-mood-insight-layout">
+            <div class="ws-mood-label">${slide.label.toUpperCase()}</div>
+            <div class="ws-mood-stat">${slide.stat}</div>
+            <p class="ws-mood-subtitle">${slide.subtitle}</p>
+          </div>`;
+        } else if (slide.type === 'monthly-mood') {
+          html = `<div class="ws-mood-bar-layout">
+            <div class="ws-mood-bar-label">YOUR MOOD</div>
+            <div class="ws-mood-bar-pct">${slide.stat}%</div>
+            <div class="ws-mood-bar-wrap">
+              <div class="ws-mood-bar-track">
+                <div class="ws-mood-bar-fill" style="width:${slide.stat}%"></div>
+              </div>
+              <div class="ws-mood-bar-ends"><span>0%</span><span>100%</span></div>
+            </div>
+            <p class="ws-mood-bar-subtitle">${slide.subtitle}</p>
+          </div>`;
+        } else if (slide.type === 'monthly-habit-chart') {
+          const r = 75, halfCirc = +(Math.PI * r).toFixed(2);
+          const pct = slide.total > 0 ? Math.round((slide.count / slide.total) * 100) : 0;
+          const filled = +((pct / 100) * halfCirc).toFixed(1);
+          const numColor = slide.dark ? 'white' : '#3d1b53';
+          const subColor = slide.dark ? 'rgba(255,255,255,0.5)' : 'rgba(61,27,83,0.45)';
+          const bgArc   = slide.dark ? 'rgba(255,255,255,0.12)' : 'rgba(61,27,83,0.1)';
+          const habitPhrase = slide.label.replace(/\?$/, '').trim().toLowerCase();
+          html = `<div class="ws-month-chart-layout">
+            <svg viewBox="0 0 200 100" width="220" height="110" style="display:block;overflow:visible">
+              <path d="M 25 95 A 75 75 0 0 1 175 95"
+                fill="none" stroke="${bgArc}" stroke-width="16" stroke-linecap="round"/>
+              <path d="M 25 95 A 75 75 0 0 1 175 95"
+                fill="none" stroke="${slide.arcColor}" stroke-width="16" stroke-linecap="round"
+                stroke-dasharray="${filled} ${halfCirc}"/>
+            </svg>
+            <div class="ws-month-chart-label" style="color:${numColor}">${slide.label.toUpperCase()}</div>
+            <div class="ws-month-chart-big-num" style="color:${numColor}">${pct}%</div>
+            <p class="ws-month-chart-sentence" style="color:${numColor}">You ${habitPhrase} <strong>${slide.count} days</strong> of ${slide.total}</p>
+            <p class="ws-month-chart-subtitle" style="color:${subColor}">${slide.subtitle}</p>
+          </div>`;
+        } else if (slide.type === 'monthly-stat') {
+          html = `<div class="ws-weekly-habit-layout">
+            <div class="ws-habit-header-block">
+              <div class="ws-habit-question">${slide.label.toUpperCase()}</div>
+            </div>
+            <div class="${slide.compact ? 'ws-monthly-compact-stat' : 'ws-habit-big-number'}">${slide.stat}</div>
+            ${slide.unit ? `<div class="ws-habit-days-word">${slide.unit.toUpperCase()}</div>` : ''}
+            <p class="ws-habit-subtitle">${slide.subtitle}</p>
+            ${slide.detail ? `<p class="ws-habit-subtitle" style="opacity:0.55;margin-top:0.2rem">${slide.detail}</p>` : ''}
           </div>`;
         } else if (slide.type === 'stat') {
           html = `<div class="ws-emoji">${slide.emoji}</div><div class="ws-label">${slide.label}</div><div class="ws-big-stat">${slide.stat}</div><p class="ws-subtitle">${slide.subtitle}</p>${slide.detail?`<p class="ws-detail">${slide.detail}</p>`:''}`;
@@ -1386,7 +1295,7 @@
 
     <div id="streak-count"></div>
 
-    <!-- AI Search -->
+    <!--Search -->
     <div class="search-section">
       <div class="search-container">
         <div class="search-bar">
