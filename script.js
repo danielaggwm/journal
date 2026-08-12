@@ -85,6 +85,9 @@ async function renderCalendar() {
       if (!docSnap.exists()) return;
       const data = docSnap.data();
 
+      // Stash it so opening this day paints the modal instantly.
+      entryCache[dateStr] = data;
+
       if (currentViewMode === 'image' && data.imageUrl) {
         info.el.style.backgroundImage = `url(${data.imageUrl})`;
         info.el.style.backgroundSize = 'cover';
@@ -290,7 +293,7 @@ async function saveJournalEntry(date) {
   });
 
   // ✅ Save to Firestore (await this)
-  await setDoc(entryRef, {
+  const entryData = {
     userId: user.uid,
     date,
     mood,
@@ -298,7 +301,11 @@ async function saveJournalEntry(date) {
     imageUrl,
     habits,
     timestamp: new Date()
-  });
+  };
+  await setDoc(entryRef, entryData);
+
+  // Keep the in-memory cache in sync so reopening shows the new content.
+  entryCache[date] = entryData;
 
   // ✅ Close modal immediately after save
   document.getElementById('journal-modal').style.display = 'none';
@@ -322,125 +329,159 @@ async function saveJournalEntry(date) {
 }
 
 
-async function loadJournalEntry(date, loadToken = ++currentLoadToken) {
-  const user = auth.currentUser;
-  if (!user) return;
+// In-memory cache of entries by date. The calendar (dayCellDidMount) already
+// fetches every visible day to draw its images/dots, so we stash that data
+// here and reuse it to paint the modal instantly — no second network wait.
+const entryCache = {};
 
-  const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
-  const docSnap = await getDoc(entryRef);
+const HABIT_KEYS = ['habit1', 'habit2', 'habit3'];
+const HABIT_FALLBACK_KEYS = { habit1: 'workout', habit2: 'read', habit3: 'called' };
+const DEFAULT_HABIT_LABELS = {
+  habit1: 'Worked out?',
+  habit2: 'Read a book?',
+  habit3: 'Called your parents?'
+};
 
-  // If the modal moved to a different date/entry while this fetch was in
-  // flight (common on slow mobile connections), discard the stale result
-  // instead of clobbering the form the user is now looking at.
-  if (loadToken !== currentLoadToken) return;
+function showEntryLoading(isLoading) {
+  const el = document.getElementById('entry-loading');
+  if (el) el.style.display = isLoading ? 'flex' : 'none';
+}
 
+// Populate the modal form from a saved entry object.
+function applyEntryData(data) {
   const imgPreview = document.getElementById('image-preview');
 
-  const habitKeys = ['habit1', 'habit2', 'habit3'];
-  const fallbackKeys = {
-    habit1: 'workout',
-    habit2: 'read',
-    habit3: 'called'
-  };
-  const defaultLabels = {
-    habit1: 'Worked out?',
-    habit2: 'Read a book?',
-    habit3: 'Called your parents?'
-  };
+  // Mood
+  moodButtons.forEach(btn => {
+    if (btn.dataset.mood === data.mood) {
+      btn.classList.add('selected');
+      selectedMoodInput.value = data.mood;
+    } else {
+      btn.classList.remove('selected');
+    }
+  });
 
-  if (docSnap.exists()) {
-    const data = docSnap.data();
+  // Habits (supports both old and new data shapes)
+  HABIT_KEYS.forEach(habitId => {
+    const labelEl = document.querySelector(`.habit-label[data-habit="${habitId}"]`);
+    const buttons = document.querySelectorAll(`#${habitId}-select .habit-button`);
+    const hiddenInput = document.getElementById(`selected-${habitId}`);
 
-    // Mood selection
-    moodButtons.forEach(btn => {
-      if (btn.dataset.mood === data.mood) {
+    const fallbackValue = data[HABIT_FALLBACK_KEYS[habitId]] || '';
+    const habitData = data.habits?.[habitId] || {
+      label: DEFAULT_HABIT_LABELS[habitId],
+      value: fallbackValue
+    };
+
+    if (labelEl) labelEl.textContent = habitData.label;
+
+    buttons.forEach(btn => {
+      if (btn.dataset.value === habitData.value) {
         btn.classList.add('selected');
-        selectedMoodInput.value = data.mood;
+        hiddenInput.value = habitData.value;
       } else {
         btn.classList.remove('selected');
       }
     });
+  });
 
-    // Load from journal entry (old or new structure)
-    habitKeys.forEach(habitId => {
-      const labelEl = document.querySelector(`.habit-label[data-habit="${habitId}"]`);
-      const buttons = document.querySelectorAll(`#${habitId}-select .habit-button`);
-      const hiddenInput = document.getElementById(`selected-${habitId}`);
+  // Description — never overwrite text the user is actively typing.
+  if (!descriptionDirty) {
+    document.getElementById('description').value = data.description || '';
+  }
 
-      const fallbackValue = data[fallbackKeys[habitId]] || '';
-      const habitData = data.habits?.[habitId] || {
-        label: defaultLabels[habitId],
-        value: fallbackValue
-      };
-
-      if (labelEl) labelEl.textContent = habitData.label;
-
-      buttons.forEach(btn => {
-        if (btn.dataset.value === habitData.value) {
-          btn.classList.add('selected');
-          hiddenInput.value = habitData.value;
-        } else {
-          btn.classList.remove('selected');
-        }
-      });
-    });
-
-    // Don't overwrite text the user has already started typing while this
-    // (possibly slow) fetch was resolving.
-    if (!descriptionDirty) {
-      document.getElementById('description').value = data.description || '';
-    }
-
-    // Image
-    if (data.imageUrl) {
-      imgPreview.src = data.imageUrl;
-      imgPreview.style.display = 'block';
-      document.getElementById('image-preview-wrapper').style.display = 'block';
-      document.getElementById('upload-label').style.display = 'none';
-    } else {
-      imgPreview.src = '';
-      imgPreview.style.display = 'none';
-      document.getElementById('image-preview-wrapper').style.display = 'none';
-      document.getElementById('upload-label').style.display = 'inline-block';
-    }
-
-    document.getElementById('clear-entry').style.display = 'inline';
+  // Image
+  if (data.imageUrl) {
+    imgPreview.src = data.imageUrl;
+    imgPreview.style.display = 'block';
+    document.getElementById('image-preview-wrapper').style.display = 'block';
+    document.getElementById('upload-label').style.display = 'none';
   } else {
-    // === No entry yet — use latest habit labels ===
-
-    const habitLabelsRef = doc(db, "habitLabels", user.uid);
-    const labelSnap = await getDoc(habitLabelsRef);
-
-    // Bail out if the user has since navigated to another entry.
-    if (loadToken !== currentLoadToken) return;
-
-    const latestLabels = labelSnap.exists() ? labelSnap.data() : defaultLabels;
-
-    // Mood
-    moodButtons.forEach(btn => btn.classList.remove('selected'));
-    selectedMoodInput.value = '';
-
-    // Habits
-    habitKeys.forEach(habitId => {
-      const labelEl = document.querySelector(`.habit-label[data-habit="${habitId}"]`);
-      const buttons = document.querySelectorAll(`#${habitId}-select .habit-button`);
-      const hiddenInput = document.getElementById(`selected-${habitId}`);
-
-      if (labelEl) labelEl.textContent = latestLabels[habitId] || defaultLabels[habitId];
-
-      buttons.forEach(btn => btn.classList.remove('selected'));
-      if (hiddenInput) hiddenInput.value = '';
-    });
-
-    // Description & image
-    if (!descriptionDirty) {
-      document.getElementById('description').value = '';
-    }
     imgPreview.src = '';
     imgPreview.style.display = 'none';
     document.getElementById('image-preview-wrapper').style.display = 'none';
     document.getElementById('upload-label').style.display = 'inline-block';
-    document.getElementById('clear-entry').style.display = 'none';
+  }
+
+  document.getElementById('clear-entry').style.display = 'inline';
+}
+
+// Reset the modal form for a day that has no saved entry yet.
+function applyEmptyEntry(latestLabels) {
+  const imgPreview = document.getElementById('image-preview');
+
+  moodButtons.forEach(btn => btn.classList.remove('selected'));
+  selectedMoodInput.value = '';
+
+  HABIT_KEYS.forEach(habitId => {
+    const labelEl = document.querySelector(`.habit-label[data-habit="${habitId}"]`);
+    const buttons = document.querySelectorAll(`#${habitId}-select .habit-button`);
+    const hiddenInput = document.getElementById(`selected-${habitId}`);
+
+    if (labelEl) labelEl.textContent = latestLabels[habitId] || DEFAULT_HABIT_LABELS[habitId];
+
+    buttons.forEach(btn => btn.classList.remove('selected'));
+    if (hiddenInput) hiddenInput.value = '';
+  });
+
+  if (!descriptionDirty) {
+    document.getElementById('description').value = '';
+  }
+  imgPreview.src = '';
+  imgPreview.style.display = 'none';
+  document.getElementById('image-preview-wrapper').style.display = 'none';
+  document.getElementById('upload-label').style.display = 'inline-block';
+  document.getElementById('clear-entry').style.display = 'none';
+}
+
+async function loadJournalEntry(date, loadToken = ++currentLoadToken) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // 1) Instant paint: if the calendar already loaded this day, show it now
+  //    so the modal never opens blank.
+  const cached = entryCache[date];
+  if (cached) {
+    showEntryLoading(false);
+    applyEntryData(cached);
+  } else {
+    showEntryLoading(true);
+  }
+
+  // 2) Refresh from Firestore in the background so edits made on another
+  //    device still show up. If the fetch is stale or fails, we simply keep
+  //    whatever we already painted from cache.
+  const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
+  let docSnap;
+  try {
+    docSnap = await getDoc(entryRef);
+  } catch (err) {
+    console.warn('Entry fetch failed; keeping cached view:', err);
+    showEntryLoading(false);
+    return;
+  }
+
+  // User navigated to another day while we waited — let that load own the UI.
+  if (loadToken !== currentLoadToken) return;
+  showEntryLoading(false);
+
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    entryCache[date] = data;
+    applyEntryData(data);
+  } else {
+    delete entryCache[date];
+
+    // Brand-new entry — fetch the latest habit labels (defaults if it fails).
+    let latestLabels = DEFAULT_HABIT_LABELS;
+    try {
+      const labelSnap = await getDoc(doc(db, "habitLabels", user.uid));
+      if (loadToken !== currentLoadToken) return;
+      if (labelSnap.exists()) latestLabels = labelSnap.data();
+    } catch (err) {
+      console.warn('Habit-label fetch failed; using defaults:', err);
+    }
+    applyEmptyEntry(latestLabels);
   }
 }
 
@@ -451,6 +492,9 @@ async function clearJournalEntry(date) {
 
   const entryId = `${user.uid}_${date}`;
   await deleteDoc(doc(db, "journalEntries", entryId));
+
+  // Drop it from the in-memory cache too.
+  delete entryCache[date];
 
   // Delete image
   const imgRef = ref(storage, `journalImages/${entryId}`);

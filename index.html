@@ -28,22 +28,44 @@
         align-items: center;
         justify-content: center;
         gap: 1rem;
-        background: #f4f0fb;
+        /* Matches the calendar background: coral fading to light lilac. */
+        background: linear-gradient(to bottom, #ffd3ce, #fbf9fe);
         font-family: 'Poppins', system-ui, sans-serif;
-        color: #6b5b95;
+        color: #b0483c;
         text-align: center;
         padding: 1.5rem;
       }
       #app-loader .spinner {
         width: 42px;
         height: 42px;
-        border: 4px solid #d9cef0;
-        border-top-color: #6b5b95;
+        border: 4px solid #ffd3ce;
+        border-top-color: #f56656;
         border-radius: 50%;
         animation: app-loader-spin 0.9s linear infinite;
       }
       #app-loader-text { margin: 0; font-size: 0.95rem; }
       @keyframes app-loader-spin { to { transform: rotate(360deg); } }
+
+      /* Spinner overlay inside the entry modal (first, uncached open only). */
+      #journal-form { position: relative; }
+      #entry-loading {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 253, 252, 0.8);
+        border-radius: inherit;
+      }
+      #entry-loading .spinner {
+        width: 34px;
+        height: 34px;
+        border: 4px solid #ffd3ce;
+        border-top-color: #f56656;
+        border-radius: 50%;
+        animation: app-loader-spin 0.9s linear infinite;
+      }
     </style>
 
     <!-- Watchdog: if the app hasn't come up in 10s (failed CDN, offline, etc.),
@@ -184,6 +206,12 @@
 
     <div id="journal-modal" class="modal" style="display: none;">
       <div class="modal-content" id="journal-form">
+
+        <!-- Shown only on the first, uncached open of a day while its entry
+             loads, so the modal shows a spinner instead of looking blank. -->
+        <div id="entry-loading" style="display:none;">
+          <div class="spinner"></div>
+        </div>
 
         <button id="close-modal" class="close-button">
           <img src="/journal/icons/close2.svg" alt="Close" />
