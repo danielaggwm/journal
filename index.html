@@ -6,11 +6,62 @@
     <meta name="theme-color" content="#f4f0fb" id="theme-color-meta">
     <title>My Journal</title>
     <link rel="stylesheet" href="base.css" />
+    <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Warm up connections to the library CDNs so first load is quicker -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
     <link rel="icon" type="image/svg" href="icon.svg">
+
+    <!-- Loading screen shown until Firebase auth resolves, so a slow mobile
+         connection sees a spinner instead of a blank page. -->
+    <style>
+      #app-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        background: #f4f0fb;
+        font-family: 'Poppins', system-ui, sans-serif;
+        color: #6b5b95;
+        text-align: center;
+        padding: 1.5rem;
+      }
+      #app-loader .spinner {
+        width: 42px;
+        height: 42px;
+        border: 4px solid #d9cef0;
+        border-top-color: #6b5b95;
+        border-radius: 50%;
+        animation: app-loader-spin 0.9s linear infinite;
+      }
+      #app-loader-text { margin: 0; font-size: 0.95rem; }
+      @keyframes app-loader-spin { to { transform: rotate(360deg); } }
+    </style>
+
+    <!-- Watchdog: if the app hasn't come up in 10s (failed CDN, offline, etc.),
+         turn the loading screen into a tap-to-retry message instead of a
+         permanent blank/spinner. Plain script so it runs even if modules fail. -->
+    <script>
+      window.__appReady = false;
+      setTimeout(function () {
+        if (window.__appReady) return;
+        var loader = document.getElementById('app-loader');
+        var text = document.getElementById('app-loader-text');
+        if (text) text.textContent = 'Having trouble loading. Check your connection, then tap to retry.';
+        if (loader) {
+          loader.style.cursor = 'pointer';
+          loader.addEventListener('click', function () { location.reload(); });
+        }
+      }, 10000);
+    </script>
 
     <!-- FullCalendar CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet"/>
@@ -49,15 +100,22 @@
           measurementId: "G-Q5SQGEPBF2"
         };
       
-        // Initialize Firebase
+        // Initialize Firebase. Set the essentials first so the app can run,
+        // then attempt analytics separately — analytics is frequently blocked
+        // on mobile (privacy settings / ad blockers) and, if it throws here,
+        // it would prevent window.firebaseApp from being set and leave the
+        // page blank until a lucky reload.
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
         const auth = getAuth(app);
-        window.firebaseApp = { auth };  
-
         const db = getFirestore(app);
         const storage = getStorage(app);
         window.firebaseApp = { auth, db, storage };
+
+        try {
+          getAnalytics(app);
+        } catch (e) {
+          console.warn("Analytics unavailable (non-fatal):", e);
+        }
 
     </script>
 
@@ -73,6 +131,12 @@
 </head>
 
 <body>
+    <!-- Loading screen (removed by script.js once Firebase auth resolves) -->
+    <div id="app-loader">
+      <div class="spinner"></div>
+      <p id="app-loader-text">Loading your journal…</p>
+    </div>
+
     <!-- LOGIN MODAL -->
     <div id="auth-modal" class="modal">
         <div class="login-wrapper">
@@ -240,6 +304,19 @@
           </button>
         </div>
     </div>
-    
+
+    <!-- Register the service worker: caches the app shell so repeat visits
+         load fast and work on flaky connections. Registered after load so it
+         never competes with the initial render. -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').catch(function (err) {
+            console.warn('Service worker registration failed:', err);
+          });
+        });
+      }
+    </script>
+
 </body>
 </html>

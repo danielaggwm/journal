@@ -17,8 +17,16 @@ import {
 let auth; 
 let calendar; 
 let currentViewMode = 'image';
-let journalEntriesWithImages = []; 
+let journalEntriesWithImages = [];
 let currentImageIndex = 0;
+
+// Guards against a slow network response overwriting the entry form.
+// currentLoadToken: bumped every time we open/load an entry so an older,
+//   still-in-flight fetch knows it's stale and bails out.
+// descriptionDirty: true once the user has typed, so a late load can't
+//   erase their words.
+let currentLoadToken = 0;
+let descriptionDirty = false;
 
 let lastIsMobile = window.innerWidth <= 410;
 
@@ -227,8 +235,10 @@ async function renderCalendar() {
 
 
 // journal entry firebase logic
-const db = window.firebaseApp.db;
-const storage = window.firebaseApp.storage;
+// Optional-chained so a slow/failed Firebase load doesn't throw here and
+// blank the whole page — the loading screen + watchdog handle that case.
+const db = window.firebaseApp?.db;
+const storage = window.firebaseApp?.storage;
 
 
 async function saveJournalEntry(date) {
@@ -312,12 +322,18 @@ async function saveJournalEntry(date) {
 }
 
 
-async function loadJournalEntry(date) {
+async function loadJournalEntry(date, loadToken = ++currentLoadToken) {
   const user = auth.currentUser;
   if (!user) return;
 
   const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
   const docSnap = await getDoc(entryRef);
+
+  // If the modal moved to a different date/entry while this fetch was in
+  // flight (common on slow mobile connections), discard the stale result
+  // instead of clobbering the form the user is now looking at.
+  if (loadToken !== currentLoadToken) return;
+
   const imgPreview = document.getElementById('image-preview');
 
   const habitKeys = ['habit1', 'habit2', 'habit3'];
@@ -369,7 +385,11 @@ async function loadJournalEntry(date) {
       });
     });
 
-    document.getElementById('description').value = data.description || '';
+    // Don't overwrite text the user has already started typing while this
+    // (possibly slow) fetch was resolving.
+    if (!descriptionDirty) {
+      document.getElementById('description').value = data.description || '';
+    }
 
     // Image
     if (data.imageUrl) {
@@ -390,6 +410,10 @@ async function loadJournalEntry(date) {
 
     const habitLabelsRef = doc(db, "habitLabels", user.uid);
     const labelSnap = await getDoc(habitLabelsRef);
+
+    // Bail out if the user has since navigated to another entry.
+    if (loadToken !== currentLoadToken) return;
+
     const latestLabels = labelSnap.exists() ? labelSnap.data() : defaultLabels;
 
     // Mood
@@ -409,7 +433,9 @@ async function loadJournalEntry(date) {
     });
 
     // Description & image
-    document.getElementById('description').value = '';
+    if (!descriptionDirty) {
+      document.getElementById('description').value = '';
+    }
     imgPreview.src = '';
     imgPreview.style.display = 'none';
     document.getElementById('image-preview-wrapper').style.display = 'none';
@@ -496,7 +522,8 @@ document.getElementById('forgot-password').addEventListener('click', (e) => {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-  renderCalendar();
+  // Calendar is rendered by onAuthStateChanged once `auth` is ready — calling
+  // it here (before auth is assigned below) just threw a swallowed error.
   // —————— Elements ——————
   const menuButton    = document.getElementById('menu-toggle');
   const menuWrapper   = document.querySelector('.menu-wrapper');
@@ -578,6 +605,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // });
 
   onAuthStateChanged(auth, user => {
+  // Firebase is up and auth has resolved — tear down the loading screen and
+  // stop the watchdog so it can't flip to the retry message.
+  window.__appReady = true;
+  const appLoader = document.getElementById('app-loader');
+  if (appLoader) appLoader.style.display = 'none';
+
   if (user) {
     authModal.style.display = 'none';
 
@@ -661,6 +694,7 @@ function openJournalModal(dateStr) {
   document.getElementById('mood-select').value = '';
   document.getElementById('description').value = '';
   document.getElementById('image-upload').value = '';
+  descriptionDirty = false; // fresh entry view — nothing typed yet
 
   // Reset image preview UI
   document.getElementById('image-preview').src = '';
@@ -673,8 +707,9 @@ function openJournalModal(dateStr) {
   
   moodButtons.forEach(btn => btn.classList.remove('selected'));
   selectedMoodInput.value = '';
-  // Load saved data (if any)
-  loadJournalEntry(dateStr);
+  // Load saved data (if any). Use a fresh token so a slow response for a
+  // previously opened date can't overwrite this one.
+  loadJournalEntry(dateStr, ++currentLoadToken);
 }
 
 document.getElementById('close-modal').addEventListener('click', () => {
@@ -849,6 +884,12 @@ function handleSwipe() {
 }
 
 
+
+// Mark the entry as "dirty" the moment the user types, so an in-flight
+// load (slow on mobile) can never erase what they've written.
+document.getElementById('description').addEventListener('input', () => {
+  descriptionDirty = true;
+});
 
 // mood selections
 const moodButtons = document.querySelectorAll('.mood-button');
