@@ -1456,6 +1456,34 @@ body.no-scroll {
   display: block;
 }
 
+/* Sort-order toggle next to search. Lights up (darker coral) when the
+   non-default "newest first" order is active. */
+#sort-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--dark-purple);
+  padding: 0;
+  background: var(--medium-orange);
+  color: var(--dark-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 0;
+}
+
+#sort-btn:hover,
+#sort-btn.newest-first {
+  background: var(--orange);
+}
+
+#sort-btn svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 .search-results-container {
   margin-top: 20px;
 }

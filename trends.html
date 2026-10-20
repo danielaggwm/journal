@@ -29,6 +29,9 @@
           getDocs,
           doc,
           getDoc,
+          query,
+          where,
+          documentId,
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
       
         const firebaseConfig = {
@@ -55,12 +58,25 @@
         let currentView = "weekly";
         let currentStartDate = getStartOfWeek(new Date());
         let allEntries = [];
+
+        // Search-results ordering. Default matches the original behavior
+        // (oldest → newest). The sort button toggles newest → oldest.
+        let searchSortNewestFirst = false;
+        let lastSearchResultObj = null;
+        let lastSearchQuery = "";
       
         onAuthStateChanged(auth, async user => {
           if (!user) return;
       
-          const entriesRef = collection(db, "journalEntries");
-          const snap = await getDocs(entriesRef);
+          // Only read THIS user's entries (ids are `uid_YYYY-MM-DD`), via a
+          // document-ID prefix range. Faster and safer than scanning the whole
+          // collection, and needs no composite index.
+          const entriesQuery = query(
+            collection(db, "journalEntries"),
+            where(documentId(), ">=", `${user.uid}_`),
+            where(documentId(), "<=", `${user.uid}_`)
+          );
+          const snap = await getDocs(entriesQuery);
       
           allEntries = [];
       
@@ -544,9 +560,21 @@
       document.getElementById('search-btn').addEventListener('click', async () => {
         const query = document.getElementById('search-input').value;
         if (!query) return;
-        
+
         const results = await searchEntries(query);
+        lastSearchResultObj = results;
+        lastSearchQuery = query;
         displaySearchResults(results, query);
+      });
+
+      // Sort-order toggle: flips results between oldest→newest (default) and
+      // newest→oldest, and re-renders the last results without searching again.
+      document.getElementById('sort-btn').addEventListener('click', () => {
+        searchSortNewestFirst = !searchSortNewestFirst;
+        document.getElementById('sort-btn').classList.toggle('newest-first', searchSortNewestFirst);
+        if (lastSearchResultObj) {
+          displaySearchResults(lastSearchResultObj, lastSearchQuery);
+        }
       });
 
       function formatDateForSearchResults(dateStr) {
@@ -693,6 +721,13 @@
         //   </div>
         // `;
 
+        // Order results by date per the current toggle (default oldest→newest).
+        const sortedResults = [...results].sort((a, b) => {
+          const da = a.date instanceof Date ? a.date : new Date(a.date);
+          const db2 = b.date instanceof Date ? b.date : new Date(b.date);
+          return searchSortNewestFirst ? db2 - da : da - db2;
+        });
+
         // ORIGINAL - Add the search results
         // results.forEach(entry => {
         //   const entryEl = document.createElement('div');
@@ -731,7 +766,7 @@
         //   </div>
         // `;
 
-        results.forEach(entry => {
+        sortedResults.forEach(entry => {
           const entryEl = document.createElement('div');
           entryEl.className = `search-result ${entry.match_type}`;
           
@@ -1309,6 +1344,12 @@
         </div>
         <button id="search-btn">
           <img src="icons/search.svg" alt="Search" />
+        </button>
+        <button id="sort-btn" type="button" title="Sort results by date" aria-label="Toggle sort order (oldest / newest first)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 19V5 M5 8 L8 5 L11 8" />
+            <path d="M16 5V19 M13 16 L16 19 L19 16" />
+          </svg>
         </button>
       </div>
 

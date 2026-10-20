@@ -7,7 +7,7 @@ import {
 
 import {
   doc, setDoc, getDoc, deleteDoc,
-  query, collection, where, getDocs 
+  query, collection, where, getDocs, documentId
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 import {
@@ -27,6 +27,13 @@ let currentImageIndex = 0;
 //   erase their words.
 let currentLoadToken = 0;
 let descriptionDirty = false;
+
+// Latest habit labels, kept so cell decoration can run without re-fetching.
+let currentHabitLabels = {
+  habit1: 'Worked out?',
+  habit2: 'Read a book?',
+  habit3: 'Called your parents?'
+};
 
 let lastIsMobile = window.innerWidth <= 410;
 
@@ -58,6 +65,7 @@ async function renderCalendar() {
     habit2: 'Read a book?',
     habit3: 'Called your parents?'
   };
+  currentHabitLabels = habitLabels; // reused by cell decoration
 
   calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
@@ -75,129 +83,12 @@ async function renderCalendar() {
     dateClick: function(info) {
       openJournalModal(info.dateStr);
     },
-    dayCellDidMount: async function(info) {
-      const dateStr = info.date.toISOString().split('T')[0];
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const entryRef = doc(db, "journalEntries", `${user.uid}_${dateStr}`);
-      const docSnap = await getDoc(entryRef);
-      if (!docSnap.exists()) return;
-      const data = docSnap.data();
-
-      // Stash it so opening this day paints the modal instantly.
-      entryCache[dateStr] = data;
-
-      if (currentViewMode === 'image' && data.imageUrl) {
-        info.el.style.backgroundImage = `url(${data.imageUrl})`;
-        info.el.style.backgroundSize = 'cover';
-        info.el.style.backgroundPosition = 'center';
-      }
-
-      if (currentViewMode === 'mood' && data.mood) {
-        const colorMap = {
-          good: 'green',
-          sad: '#1e81b0',
-          angry: 'red',
-          excited: 'orange'
-        };
-
-        const circle = document.createElement('div');
-        circle.style.position = 'absolute';
-        circle.style.bottom = '5px';
-        circle.style.right = '5px';
-        circle.style.width = '12px';
-        circle.style.height = '12px';
-        circle.style.borderRadius = '50%';
-        circle.style.backgroundColor = colorMap[data.mood] || 'gray';
-
-        info.el.style.position = 'relative';
-        info.el.appendChild(circle);
-      }
-
-      if (['habit1', 'habit2', 'habit3'].includes(currentViewMode)) {
-        let value = '';
-        let habitLabelInEntry = '';
-      
-        if (data.habits?.[currentViewMode]) {
-          value = data.habits[currentViewMode].value;
-          habitLabelInEntry = data.habits[currentViewMode].label || '';
-        } else {
-          const fallbackKeys = { habit1: 'workout', habit2: 'read', habit3: 'called' };
-          value = data[fallbackKeys[currentViewMode]] || '';
-          habitLabelInEntry = ''; // No label saved in old data
-        }
-      
-        const originalLabels = {
-          habit1: 'Worked out?',
-          habit2: 'Read a book?',
-          habit3: 'Called your parents?'
-        };
-      
-        // Only show mark if:
-        // 1) label exists and matches current label OR
-        // 2) no label saved but current label is the original default label
-        const labelMatches =
-          habitLabelInEntry === habitLabels[currentViewMode] ||
-          (habitLabelInEntry === '' && habitLabels[currentViewMode] === originalLabels[currentViewMode]);
-      
-        if (labelMatches) {
-          if (value === 'yes' || value === 'no') {
-            const circle = document.createElement('div');
-            circle.style.position = 'absolute';
-            circle.style.bottom = '5px';
-            circle.style.right = '5px';
-            circle.style.width = '20px';
-            circle.style.height = '20px';
-            circle.style.borderRadius = '50%';
-            circle.style.backgroundColor = value === 'yes' ? 'green' : '#B22222';
-            circle.style.display = 'flex';
-            circle.style.alignItems = 'center';
-            circle.style.justifyContent = 'center';
-      
-            const img = document.createElement('img');
-            img.src = value === 'yes' ? '/journal/icons/check.svg' : '/journal/icons/close.svg';
-            img.alt = value;
-            img.style.width = '12px';
-            img.style.height = '12px';
-      
-            circle.appendChild(img);
-            info.el.style.position = 'relative';
-            info.el.appendChild(circle);
-          }
-        }
-      }
-      
-      
-      
-    },
-    datesSet: () => {
-      if (window.innerWidth > 410) return;
-
-      const toolbar = document.querySelector('.fc-header-toolbar');
-      if (!toolbar) return;
-
-      const chunks = Array.from(toolbar.querySelectorAll('.fc-toolbar-chunk'));
-      if (chunks.length < 3) return;
-
-      const [chunk1, chunk2, chunk3] = chunks;
-
-      const oldWrapper = toolbar.querySelector('.fc-toolbar-chunk-row');
-      if (oldWrapper) oldWrapper.remove();
-      chunks.forEach(c => c.remove());
-
-      const wrapper = document.createElement('div');
-      wrapper.classList.add('fc-toolbar-chunk-row');
-      wrapper.style.display = 'flex';
-      wrapper.style.justifyContent = 'center';
-      wrapper.style.gap = '1rem';
-      wrapper.style.width = '100%';
-      wrapper.style.marginBottom = '0.5rem';
-      wrapper.appendChild(chunk1);
-      wrapper.appendChild(chunk3);
-
-      toolbar.appendChild(chunk2);
-      toolbar.appendChild(wrapper);
+    datesSet: (info) => {
+      reflowMobileToolbar();
+      // Paint instantly from whatever we already have cached...
+      decorateVisibleCells();
+      // ...then load the whole visible month in ONE query and repaint.
+      loadMonthEntries(info.start, info.end).then(decorateVisibleCells);
     }
   });
 
@@ -228,12 +119,153 @@ async function renderCalendar() {
 
     select.addEventListener('change', e => {
       currentViewMode = e.target.value;
-      renderCalendar(); // Refresh view with new mode
+      decorateVisibleCells(); // instant: no rebuild, no new query
     });
 
     dropdownContainer.appendChild(select);
     button.appendChild(dropdownContainer);
   }, 0);
+}
+
+// Local 'YYYY-MM-DD' key matching how entries are stored and how FullCalendar
+// labels its day cells (data-date). Avoids UTC off-by-one shifts.
+function toDateKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// Fetch every entry in the visible date range with a SINGLE query, using a
+// document-ID range (ids are `uid_YYYY-MM-DD`). This needs no composite index
+// and only ever returns this user's own docs. Replaces ~42 per-cell reads.
+async function loadMonthEntries(start, end) {
+  const user = auth.currentUser;
+  if (!user || !db) return;
+
+  const startKey = toDateKey(start);
+  // FullCalendar's `end` is exclusive, so step back one day for an inclusive key.
+  const endInclusive = new Date(end.getTime() - 86400000);
+  const endKey = toDateKey(endInclusive);
+
+  try {
+    const q = query(
+      collection(db, "journalEntries"),
+      where(documentId(), '>=', `${user.uid}_${startKey}`),
+      where(documentId(), '<=', `${user.uid}_${endKey}`)
+    );
+    const snap = await getDocs(q);
+    snap.forEach(d => { entryCache[d.data().date || d.id.split('_')[1]] = d.data(); });
+  } catch (err) {
+    console.warn('Month load failed:', err);
+  }
+}
+
+// Draw images / mood dots / habit dots on the currently rendered day cells,
+// reading only from entryCache (no network). Safe to call repeatedly.
+function decorateVisibleCells() {
+  const cells = document.querySelectorAll('#calendar .fc-daygrid-day');
+  if (!cells.length) return;
+
+  const colorMap = { good: 'green', sad: '#1e81b0', angry: 'red', excited: 'orange' };
+  const originalLabels = {
+    habit1: 'Worked out?',
+    habit2: 'Read a book?',
+    habit3: 'Called your parents?'
+  };
+
+  cells.forEach(cell => {
+    const dateStr = cell.getAttribute('data-date');
+
+    // Clear any previous decoration before (re)applying.
+    cell.style.backgroundImage = '';
+    cell.querySelectorAll('.entry-dot').forEach(el => el.remove());
+
+    const data = dateStr ? entryCache[dateStr] : null;
+    if (!data) return;
+
+    cell.style.position = 'relative';
+
+    if (currentViewMode === 'image' && data.imageUrl) {
+      cell.style.backgroundImage = `url(${data.imageUrl})`;
+      cell.style.backgroundSize = 'cover';
+      cell.style.backgroundPosition = 'center';
+      return;
+    }
+
+    if (currentViewMode === 'mood' && data.mood) {
+      const dot = document.createElement('div');
+      dot.className = 'entry-dot';
+      dot.style.cssText =
+        'position:absolute;bottom:5px;right:5px;width:12px;height:12px;border-radius:50%;';
+      dot.style.backgroundColor = colorMap[data.mood] || 'gray';
+      cell.appendChild(dot);
+      return;
+    }
+
+    if (['habit1', 'habit2', 'habit3'].includes(currentViewMode)) {
+      let value = '';
+      let habitLabelInEntry = '';
+      if (data.habits?.[currentViewMode]) {
+        value = data.habits[currentViewMode].value;
+        habitLabelInEntry = data.habits[currentViewMode].label || '';
+      } else {
+        const fallbackKeys = { habit1: 'workout', habit2: 'read', habit3: 'called' };
+        value = data[fallbackKeys[currentViewMode]] || '';
+        habitLabelInEntry = '';
+      }
+
+      const labelMatches =
+        habitLabelInEntry === currentHabitLabels[currentViewMode] ||
+        (habitLabelInEntry === '' && currentHabitLabels[currentViewMode] === originalLabels[currentViewMode]);
+
+      if (labelMatches && (value === 'yes' || value === 'no')) {
+        const dot = document.createElement('div');
+        dot.className = 'entry-dot';
+        dot.style.cssText =
+          'position:absolute;bottom:5px;right:5px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;';
+        dot.style.backgroundColor = value === 'yes' ? 'green' : '#B22222';
+
+        const img = document.createElement('img');
+        img.src = value === 'yes' ? '/journal/icons/check.svg' : '/journal/icons/close.svg';
+        img.alt = value;
+        img.style.width = '12px';
+        img.style.height = '12px';
+        dot.appendChild(img);
+        cell.appendChild(dot);
+      }
+    }
+  });
+}
+
+// The mobile-only header reflow that used to live inline in datesSet.
+function reflowMobileToolbar() {
+  if (window.innerWidth > 410) return;
+
+  const toolbar = document.querySelector('.fc-header-toolbar');
+  if (!toolbar) return;
+
+  const chunks = Array.from(toolbar.querySelectorAll('.fc-toolbar-chunk'));
+  if (chunks.length < 3) return;
+
+  const [chunk1, chunk2, chunk3] = chunks;
+
+  const oldWrapper = toolbar.querySelector('.fc-toolbar-chunk-row');
+  if (oldWrapper) oldWrapper.remove();
+  chunks.forEach(c => c.remove());
+
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('fc-toolbar-chunk-row');
+  wrapper.style.display = 'flex';
+  wrapper.style.justifyContent = 'center';
+  wrapper.style.gap = '1rem';
+  wrapper.style.width = '100%';
+  wrapper.style.marginBottom = '0.5rem';
+  wrapper.appendChild(chunk1);
+  wrapper.appendChild(chunk3);
+
+  toolbar.appendChild(chunk2);
+  toolbar.appendChild(wrapper);
 }
 
 
@@ -255,10 +287,14 @@ async function saveJournalEntry(date) {
   const entryRef = doc(db, "journalEntries", `${user.uid}_${date}`);
   let imageUrl = "";
 
-  // Get existing imageUrl if it exists
-  const existingSnap = await getDoc(entryRef);
-  if (existingSnap.exists()) {
-    imageUrl = existingSnap.data().imageUrl || "";
+  // Reuse the cached entry if we have it; only hit the network otherwise.
+  if (entryCache[date]) {
+    imageUrl = entryCache[date].imageUrl || "";
+  } else {
+    const existingSnap = await getDoc(entryRef);
+    if (existingSnap.exists()) {
+      imageUrl = existingSnap.data().imageUrl || "";
+    }
   }
 
   // Handle image upload
@@ -329,9 +365,9 @@ async function saveJournalEntry(date) {
 }
 
 
-// In-memory cache of entries by date. The calendar (dayCellDidMount) already
-// fetches every visible day to draw its images/dots, so we stash that data
-// here and reuse it to paint the modal instantly — no second network wait.
+// In-memory cache of entries by date. The calendar loads each visible month
+// in one query (loadMonthEntries) to draw its images/dots, so we reuse that
+// same data to paint the entry modal instantly — no second network wait.
 const entryCache = {};
 
 const HABIT_KEYS = ['habit1', 'habit2', 'habit3'];
@@ -664,7 +700,9 @@ document.addEventListener('DOMContentLoaded', () => {
     menuWrapper.style.display = 'flex';
     document.getElementById('calendar').style.display = 'block';
 
-    fetchEntriesWithImages();
+    // Note: the full image gallery (fetchEntriesWithImages) is now loaded
+    // lazily the first time the image overlay is opened, so it no longer
+    // competes with the calendar at startup.
     renderCalendar();
 
   } else {
@@ -760,16 +798,6 @@ document.getElementById('close-modal').addEventListener('click', () => {
   document.getElementById('journal-modal').style.display = 'none';
 });
 
-document.getElementById('save-entry').addEventListener('click', async () => {
-  await saveJournalEntry(selectedDate);
-  document.getElementById('journal-modal').style.display = 'none';
-});
-
-document.getElementById('clear-entry').addEventListener('click', async () => {
-  await clearJournalEntry(selectedDate);
-  document.getElementById('journal-modal').style.display = 'none';
-});
-
 // Function to disable scrolling
 function disableBodyScroll() {
   document.body.style.overflow = 'hidden';
@@ -820,9 +848,15 @@ removeImageButton.addEventListener('click', () => {
 
 imagePreview.addEventListener('click', async () => {
   const currentImageSrc = imagePreview.src;
-  
+
+  // Lazily load the full image gallery the first time it's needed, so swiping
+  // between photos works without paying that cost at startup.
+  if (journalEntriesWithImages.length === 0) {
+    fetchEntriesWithImages();
+  }
+
   // If we haven't loaded entries yet or the current image isn't in our list
-  if (journalEntriesWithImages.length === 0 || 
+  if (journalEntriesWithImages.length === 0 ||
       !journalEntriesWithImages.some(entry => entry.imageUrl === currentImageSrc)) {
     // Create a temporary entry for the current image
     fullImage.src = currentImageSrc;
@@ -948,16 +982,34 @@ moodButtons.forEach(button => {
 });
 
 
-document.getElementById('save-entry').addEventListener('click', async () => {
-  await saveJournalEntry(selectedDate);
-  document.getElementById('journal-modal').style.display = 'none';
-  renderCalendar(); // re-render to update UI
+// Single save handler. isSaving guards against the double-tap/double-submit
+// that used to fire two uploads at once. saveJournalEntry closes the modal and
+// updates entryCache; we just repaint the affected cell (no full rebuild).
+let isSaving = false;
+const saveEntryBtn = document.getElementById('save-entry');
+saveEntryBtn.addEventListener('click', async () => {
+  if (isSaving) return;
+  isSaving = true;
+  const originalLabel = saveEntryBtn.textContent;
+  saveEntryBtn.disabled = true;
+  saveEntryBtn.textContent = 'Saving…';
+  try {
+    await saveJournalEntry(selectedDate);
+    decorateVisibleCells();
+  } catch (err) {
+    console.error('Save failed:', err);
+    alert('Could not save your entry. Please try again.');
+  } finally {
+    isSaving = false;
+    saveEntryBtn.disabled = false;
+    saveEntryBtn.textContent = originalLabel;
+  }
 });
 
 document.getElementById('clear-entry').addEventListener('click', async () => {
   await clearJournalEntry(selectedDate);
   document.getElementById('journal-modal').style.display = 'none';
-  renderCalendar(); // re-render to remove the mood circle
+  decorateVisibleCells(); // repaint to remove the dot/image
 });
 
 
