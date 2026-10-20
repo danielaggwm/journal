@@ -1478,9 +1478,10 @@ body.no-scroll {
   background: var(--orange);
 }
 
-#sort-btn svg {
+#sort-btn img {
   width: 18px;
   height: 18px;
+  object-fit: contain;
   display: block;
 }
 
